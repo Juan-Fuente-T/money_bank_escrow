@@ -135,6 +135,26 @@ antiguo amarillo/verdoso hover: #d1e510;
   align-items: center;
   gap: 20px;
 }
+.logout-title-logo-container {
+  display: flex;
+  justify-content: space-between;
+  /* justify-content: space-between; */
+  align-items: center;
+  margin-bottom: 10px;
+}
+.logout-title-logo-container p {
+  font-size: 1.3em;
+}
+.title-container {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+  margin-left: 50px; /*CUIDADO en responsive*/
+}
+.title.container .description {
+  margin-top: 100px;
+}
+
 .title-logo-container {
   display: flex;
   /* justify-content: stretch; */
@@ -206,15 +226,15 @@ antiguo amarillo/verdoso hover: #d1e510;
   width: calc(
     50% - 20px
   ); /* Ajusta el ancho para que el input esté bien alineado con el formulario */
-  padding: 5px;
+  padding: 2px;
   margin: auto;
   margin-bottom: 2px;
-  margin-top: 15px;
+  margin-top: 25px;
   /* border: 1px solid #b3d335; Borde verde brillante */
   border-radius: 5px;
   background-color: #1b3b6f; /* Fondo azul oscuro para inputs */
   color: #ffffff; /* Texto en blanco */
-  font-size: 1.5rem;
+  font-size: 1.4rem;
 }
 
 .containerEscrowOwner {

@@ -14,6 +14,9 @@ import FormularioOferta from './components/FormularioOferta'
 import OfferCard from "./components/OfferCard";
 import { toast } from 'react-toastify';
 import truncateEthAddress from 'truncate-eth-address';
+import { useAccount, usePublicClient } from 'wagmi'
+
+
 // Importaciones TEMPORALMENTE en deshuso
 // import truncateEthAddress from 'truncate-eth-address';
 // import { coinGeckoGetPricesKV, coinGeckoGetPricesList } from './utils/Prices'
@@ -23,6 +26,7 @@ import truncateEthAddress from 'truncate-eth-address';
 import "./App.css";
 import 'react-toastify/dist/ReactToastify.css';
 import { coinGeckoGetPricesKV } from "./utils/Prices";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 // import styles from './App.module.css';
 // import styles from "../styles/Home.module.css";
 
@@ -60,6 +64,7 @@ export default function Home() {
   const [orderId] = useState(0);
   const [, setSigner] = useState<ethers.Signer | null>(null);
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
+  const [userAddress, setUserAddress] = useState<string>("");
   const [address, setAddress] = useState<string>("");
   const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
   const [contract, setContract] = useState<Contract | null>(null);
@@ -79,60 +84,107 @@ export default function Home() {
   const valorEthEnUsd = ethPrecio * usdtPrecio;
   const valorUsdEnEth = usdtPrecio / ethPrecio;
 
+  const publicClient = usePublicClient()
+  const { address: _address } = useAccount();
+  useEffect(() => {
+    if (_address) {
+      setAddress(_address);
+      setLoggedIn(true);
+    } else {
+      setLoggedIn(false);
+    }
+  }, [_address]);
+  
+  /// ================== Fee Seller ==================
+  // Obtener la tarifa del vendedor desde el contrato inteligente
+  const getFeeSeller = useCallback(async () => {
+    if (!contract) {
+      console.log("Contract no inicializado");
+      return null;
+    }
+    try {
+      const feeSeller = await contract?.feeSeller();
+      console.log("feeSeller", feeSeller); // Imprime la versión obtenida del contrato
+      return feeSeller;
+    } catch (error) {
+      console.error("Error al obtener la feeSeller:", error);
+      return null;
+    }
+  }, [contract]);
+
+  /// ================== Fee Buyer ==================
+  // Obtener la tarifa del comprador desde el contrato inteligente
+  const getFeeBuyer = useCallback(async () => {
+    if (!contract) {
+      console.log("Contract no inicializado");
+      return null;
+    }
+    try {
+      const feeBuyer = await contract?.feeBuyer();
+      console.log("feeBuyer", feeBuyer); // Imprime la versión obtenida del contrato
+      return feeBuyer;
+    } catch (error) {
+      console.error("Error al obtener la feeBuyer:", error);
+      return null;
+    }
+  }, [contract]);
+
   // console.log("CONTRACT_ADDRESS:", CONTRACT_ADDRESS);
   // console.log("TowerbankABI:", TowerbankABI);
   // Función asíncrona para conectar la billetera del usuario con la aplicación
   console.log("window.ethereum:", window.ethereum);
-  const connectWallet = async () => {
-    if (window.ethereum) {
-      try {
-        // Solicitar al usuario que conecte su billetera
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        console.log("provider ", provider);
+  // const connectWallet = async () => {
+  //   if (window.ethereum) {
+  //     try {
+  //       // Solicitar al usuario que conecte su billetera
+  //       const provider = new ethers.BrowserProvider(window.ethereum);
+  //       console.log("provider ", provider);
 
-        // Obtiene el signer del proveedor para firmar transacciones
-        const signer = await provider.getSigner();
-        console.log("signer", signer);
+  //       // Obtiene el signer del proveedor para firmar transacciones
+  //       const signer = await provider.getSigner();
+  //       console.log("signer", signer);
 
-        // Obtiene la dirección del usuario conectado
-        const userAddress = await signer.getAddress();
-        setAddress(userAddress);
-        setProvider(provider);
-        setSigner(signer);
-        // Actualiza el estado de conexión basado en la dirección del usuario
-        userAddress ? setLoggedIn(true) : setLoggedIn(false);
-        // Verifica si tanto el proveedor como el signer están inicializados correctamente
-        if (provider && signer) {
-          // Inicializa el contrato de Towerbank utilizando la dirección y ABI proporcionadas
-          const moneybankContract = new Contract(CONTRACT_ADDRESS, TowerbankABI, signer);
-          if (!moneybankContract) {
-            console.error("Moneybank contract initialization failed");
-          } else {
-            console.log("Moneybank Contract initialized:", moneybankContract);
-          }
-          console.log("Contract:", moneybankContract);
-          setContract(moneybankContract);
-          // console.log("Contract:", towerbankContract);
-          console.log("userAddress", userAddress);
-          // Inicializa el contrato USDT utilizando la dirección y ABI proporcionadas
-          const usdtContract = new Contract(USDTAddress, USDTABI, signer);
-          if (!usdtContract) {
-            console.error("USDT contract initialization failed");
-          } else {
-            console.log("USDT Contract initialized:", usdtContract);
-          }
-          setTokenContract(usdtContract);
-          console.log("TOKENContract:", usdtContract);
-        } else {
-          console.error("Provider or Signer not initialized");
-        }
-      } catch (err) {
-        console.error("User rejected the connection:", err);
-      }
-    } else {
-      console.error("No Ethereum provider found. Install MetaMask or another wallet.");
-    }
-  };
+  //       // Obtiene la dirección del usuario conectado
+  //       const userAddress = await signer.getAddress();
+  //       setAddress(userAddress);
+  //       setProvider(provider);
+  //       setSigner(signer);
+  //       // Actualiza el estado de conexión basado en la dirección del usuario
+  //       userAddress ? setLoggedIn(true) : setLoggedIn(false);
+  //       // Verifica si tanto el proveedor como el signer están inicializados correctamente
+  //       if (provider && signer) {
+  //         // Inicializa el contrato de Towerbank utilizando la dirección y ABI proporcionadas
+  //         const moneybankContract = new Contract(CONTRACT_ADDRESS, TowerbankABI, signer);
+  //         if (!moneybankContract) {
+  //           console.error("Moneybank contract initialization failed");
+  //         } else {
+  //           console.log("Moneybank Contract initialized:", moneybankContract);
+  //         }
+  //         console.log("Contract:", moneybankContract);
+  //         setContract(moneybankContract);
+  //         // console.log("Contract:", towerbankContract);
+  //         console.log("userAddress", userAddress);
+  //         // Inicializa el contrato USDT utilizando la dirección y ABI proporcionadas
+  //         const usdtContract = new Contract(USDTAddress, USDTABI, signer);
+  //         if (!usdtContract) {
+  //           console.error("USDT contract initialization failed");
+  //         } else {
+  //           console.log("USDT Contract initialized:", usdtContract);
+  //         }
+  //         setTokenContract(usdtContract);
+  //         console.log("TOKENContract:", usdtContract);
+  //       } else {
+  //         console.error("Provider or Signer not initialized");
+  //       }
+  //     } catch (err) {
+  //       console.error("User rejected the connection:", err);
+  //     }
+  //   } else {
+  //     console.error("No Ethereum provider found. Install MetaMask or another wallet.");
+  //   }
+  // };
+  
+ 
   // console.log("Contrat", contract);
   // console.log("tokenContrat", tokenContract);
   
@@ -427,29 +479,7 @@ export default function Home() {
   }
 
 
-  /// ================== Fee Seller ==================
-  // Obtener la tarifa del vendedor desde el contrato inteligente
-  const getFeeSeller = useCallback(async () => {
-    try {
-      const feeSeller = await contract?.feeSeller();
-      console.log("feeSeller", feeSeller); // Imprime la versión obtenida del contrato
-      return feeSeller;
-    } catch (error) {
-      console.error("Error al obtener la feeSeller:", error);
-    }
-  }, [contract]);
 
-  /// ================== Fee Buyer ==================
-  // Obtener la tarifa del comprador desde el contrato inteligente
-  const getFeeBuyer = useCallback(async () => {
-    try {
-      const feeBuyer = await contract?.feeBuyer();
-      console.log("feeBuyer", feeBuyer); // Imprime la versión obtenida del contrato
-      return feeBuyer;
-    } catch (error) {
-      console.error("Error al obtener la feeBuyer:", error);
-    }
-  }, [contract]);
 
 
 
@@ -743,7 +773,7 @@ export default function Home() {
       // Se actualiza el estado con los balances y las ofertas
       const balance = await tokenContract?.balanceOf(address);
       setBalanceOf(balance);
-      const _balance = await provider?.getBalance(address);
+      const _balance = await provider?.getBalance(userAddress);
       setEthBalance(_balance ? ethers.formatEther(_balance) : '');
       setNativeOffers(fetchedNativeOffers);
       setUsdtOffers(fetchedUsdtOffers);
@@ -895,17 +925,45 @@ export default function Home() {
     // setDatosModal(null);
   };
 
-
-
   useEffect(() => {
     setIsMounted(true);
     // setBalanceOf(balanceOf?.data);
   }, []);
 
+  useEffect(() => {
+    const initializeContract = async () => {
+      try{
+        if (typeof window.ethereum !== 'undefined' && address) {
+          const provider = new ethers.BrowserProvider(window.ethereum);
+          const signer = await provider.getSigner();
+          const newContract = new ethers.Contract(CONTRACT_ADDRESS, TowerbankABI, signer);
+          setContract(newContract);
+          const tokenContract = new ethers.Contract(USDTAddress, USDTABI, signer);
+          setTokenContract(tokenContract);
+          address ? setLoggedIn(true) : setLoggedIn(false);
+        }
+      }catch{
+        console.error("Error initializing contract");
+      }
+    };
+
+    if (address) {
+      initializeContract();
+    }
+  }, [address]);
+  
+  // if (!_address) {
+  //   return <div>Connectar billetera</div>;
+  // }
+
   if (!isMounted) return null;
 
   const unloggedInView = (
     <div>
+      <div className="logout-title-logo-container">
+                <p>Intercambio de USDT-ETH entre particulares garantizado mediante escrows</p>
+                <ConnectButton />              
+              </div>
       <div>
         {/* <div className={styles.mainContainer}> */}
         <div className="mainContainer">
@@ -955,10 +1013,13 @@ export default function Home() {
             <div className="containerTitle">
               <div className="title-logo-container">
                 <img className="logo" src="/MoneyBank_logo.png" alt="Logo de Moneybank, intercambio p2p de criptomonedas" />
-                <h1 className="title">Money Bank Escrow</h1>
-                <p className="description">Intercambio de USDT-ETH entre particulares</p>
+                <div className="title-container">
+                  <h1 className="title">Money Bank Escrow</h1>
+                  <p className="description">Intercambio de USDT-ETH entre particulares</p>
+                </div>
+                <ConnectButton />              
               </div>
-              {address && <p className="show-balance">Dirección del usuario: {truncateEthAddress(address)}</p>}
+              {/* {address && <p className="show-balance">Dirección del usuario: {truncateEthAddress(address)}</p>} */}
               <div className="balances-container">
                 {ethBalance && <p className="show-balance">Balance de USDT: {balanceOf.toString()}</p>}
                 {ethBalance && <p className="show-balance">Balance de ETH: {ethBalance}</p>}
@@ -1151,7 +1212,8 @@ export default function Home() {
           {address ? (
             <p>Connected Address: {address}</p>
           ) : (
-            <button onClick={connectWallet}>Conectar Billetera</button>
+            // <button onClick={connectWallet}>Conectar Billetera</button>
+            <ConnectButton />
           )}
         </div>
       )}
