@@ -19,14 +19,16 @@ root.render(
     </UserProvider>
   </React.StrictMode>
 );
+
+// //USO CON WAGMI Y RAINBOWKIT
 // import React from 'react'
 // import ReactDOM from 'react-dom/client'
 // import App from './App.tsx'
 // import './index.css'
 // import {RainbowKitProvider,darkTheme,getDefaultConfig} from '@rainbow-me/rainbowkit'
-// // import { sepolia } from 'wagmi/chains'
+// // import { arbitrumSepolia } from 'wagmi/chains'
 // // import { polygonAmoy } from 'wagmi/chains'
-// import { arbitrumSepolia } from 'wagmi/chains'
+// import { sepolia } from 'wagmi/chains'
 // import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 // import { WagmiProvider } from 'wagmi'
 // import { ToastContainer } from 'react-toastify'
@@ -35,11 +37,17 @@ root.render(
 
 // const queryClient = new QueryClient()
 
+// const projectId = process.env.REACT_APP_PROJECT_ID;
+
+// if(!projectId){
+//   throw new Error('REACT_APP_PROJECT_ID is not set')
+// }
+
 // export const config = getDefaultConfig({
 //   appName: 'Supply Chain',
-//   projectId: import.meta.env.VITE_PROJECT_ID,
-//   // chains: [sepolia],
-//   chains: [arbitrumSepolia],
+//   projectId: projectId,
+//   // chains: [arbitrumSepolia],
+//   chains: [sepolia],
 //   // chains: [polygonAmoy],
 // })
 

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import '../styles/ModalResumen.css'; 
 
 type ModalResumenProps = {
@@ -28,6 +29,11 @@ type ModalResumenProps = {
    */
   const ModalResumen: React.FC<ModalResumenProps> = ({ onCloseModal, datosModal, onConfirm }: ModalResumenProps): JSX.Element => {
   const isValidCrypto = datosModal.crypto === "usdt" || datosModal.crypto === "eth";
+  const [isButtonDisabled, setIsButtonDisabled] = useState<boolean>(false);
+  const handleConfirm = () => {
+    setIsButtonDisabled(true);
+    onConfirm();
+  };
   return (
     <div className="modal-overlay">
       <div className="modal-content">
@@ -41,10 +47,10 @@ type ModalResumenProps = {
       <p>Ubicación: { datosModal.location}</p> */}
         <p>Condiciones de venta: {datosModal.conditions}</p>
         <div className="modal-buttons">
-          <button className="btn-cancel" onClick={onCloseModal}>
+          <button className="btn-cancel" onClick={onCloseModal} disabled={isButtonDisabled}>
             x
           </button>
-          <button className="btn-confirm" onClick={onConfirm}>
+          <button className="btn-confirm" onClick={handleConfirm} disabled={isButtonDisabled}>
             Aceptar
           </button>
         </div>

@@ -20,7 +20,7 @@
   margin-top: 10px;
 }
 .inputs-container label {
-  margin-top: 20px;
+  margin-top: 12px;
 }
 .inputs-container p {
   font-size: 1.2rem;
@@ -31,15 +31,20 @@
   width: calc(
     100% - 20px
   ); /* Ajusta el ancho para que el input esté bien alineado con el formulario */
-  padding: 20px;
+  padding: 12px;
   margin: auto;
-  margin-bottom: 15px;
+  margin-bottom: 5px;
   margin-top: 5px;
   border: 1px solid #b3d335; /* Borde verde brillante */
   border-radius: 5px;
   background-color: #1b3b6f; /* Fondo azul oscuro para inputs */
   color: #ffffff; /* Texto en blanco */
   font-size: 16px;
+}
+
+.conversor-container p {
+  margin-left: 10px;
+  margin-top: 12px;
 }
 
 .form input[type="radio"] {
@@ -49,9 +54,15 @@
 .form textarea {
   resize: none; /* Desactivar el redimensionamiento del textarea */
 }
+.radio-container {
+  display: flex;
+  flex-direction: column;
+  align-items: self-start;
+  margin: 25px 0px;
+}
 
 .form button[type="submit"] {
-  background-color: #e2f212; /* Fondo de botón amarillo claro */
+  background-color: #ffb657; /* Fondo de botón amarillo claro */
   color: #0c2d59; /* Texto en azul oscuro */
   border: none;
   border-radius: 5px;
@@ -65,7 +76,8 @@
 }
 
 .form button[type="submit"]:hover {
-  background-color: #d1e510; /* Efecto hover para el botón */
+  background-color: #fdd197; /* Efecto hover para el botón */
+  scale: 1.03;
 }
 
 .form button[type="submit"]:focus {
@@ -79,7 +91,7 @@
   right: 20px;
   border: none;
   /* background: transparent; */
-  background-color: #d1e510;
+  background-color: #ffb657;
   font-size: 30px;
   cursor: pointer;
 
@@ -90,7 +102,9 @@
   color: #0c2d59;
   /* color: #ffffff; */
 }
-.form-close-button-container {
+.form-close-button:hover {
+  background-color: #fdd197;
+  scale: 1.03;
 }
 .form-price-container {
   display: flex;

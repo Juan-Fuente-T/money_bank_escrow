@@ -27,7 +27,7 @@ const CancelationModal: React.FC<CancelationModalProps> = ({ show, onClose, onCo
     return (
       <div className="modal-overlay-confirmation">
         <div className="modal-content-confirmation">
-          <button className="modal-close-confirmation" onClick={onClose}>X</button>
+          {/* <button className="modal-close-confirmation" onClick={onClose}>X</button> */}
           <h2>Cancelar</h2>
           <p>¿Estás seguro de que quieres cancelar esta oferta?</p>
           <p>Número de oferta: {offer?.id}</p>

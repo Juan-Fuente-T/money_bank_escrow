@@ -3,7 +3,6 @@ import { USDTABI } from "./assets/abis/UsdtABI";
 import { CONTRACT_ADDRESS } from "./assets/constants";
 import { USDTAddress } from "./assets/constants";
 import { TowerbankABI } from "./assets/abis/TowerbankABI";
-
 // Importaciones de React y ethers para manejar el estado y las interacciones con la blockchain
 import { useEffect, useState, useCallback, useRef } from "react";
 // import { Contract, ethers, formatEther, hashMessage, JsonRpcProvider, Wallet } from 'ethers';
@@ -23,9 +22,9 @@ import truncateEthAddress from 'truncate-eth-address';
 // Estilos 
 import "./App.css";
 import 'react-toastify/dist/ReactToastify.css';
+import { coinGeckoGetPricesKV } from "./utils/Prices";
 // import styles from './App.module.css';
 // import styles from "../styles/Home.module.css";
-
 
 // Extensión de la interfaz Window para incluir ethereum como una propiedad opcional
 declare global {
@@ -80,15 +79,20 @@ export default function Home() {
   const valorEthEnUsd = ethPrecio * usdtPrecio;
   const valorUsdEnEth = usdtPrecio / ethPrecio;
 
+  // console.log("CONTRACT_ADDRESS:", CONTRACT_ADDRESS);
+  // console.log("TowerbankABI:", TowerbankABI);
   // Función asíncrona para conectar la billetera del usuario con la aplicación
+  console.log("window.ethereum:", window.ethereum);
   const connectWallet = async () => {
     if (window.ethereum) {
       try {
         // Solicitar al usuario que conecte su billetera
         const provider = new ethers.BrowserProvider(window.ethereum);
+        console.log("provider ", provider);
 
         // Obtiene el signer del proveedor para firmar transacciones
         const signer = await provider.getSigner();
+        console.log("signer", signer);
 
         // Obtiene la dirección del usuario conectado
         const userAddress = await signer.getAddress();
@@ -100,15 +104,16 @@ export default function Home() {
         // Verifica si tanto el proveedor como el signer están inicializados correctamente
         if (provider && signer) {
           // Inicializa el contrato de Towerbank utilizando la dirección y ABI proporcionadas
-          const towerbankContract = new Contract(CONTRACT_ADDRESS, TowerbankABI, signer);
-          if (!towerbankContract) {
-            console.error("Towerbank contract initialization failed");
+          const moneybankContract = new Contract(CONTRACT_ADDRESS, TowerbankABI, signer);
+          if (!moneybankContract) {
+            console.error("Moneybank contract initialization failed");
           } else {
-            console.log("Towerbank Contract initialized:", towerbankContract);
+            console.log("Moneybank Contract initialized:", moneybankContract);
           }
-          setContract(towerbankContract);
+          console.log("Contract:", moneybankContract);
+          setContract(moneybankContract);
           // console.log("Contract:", towerbankContract);
-
+          console.log("userAddress", userAddress);
           // Inicializa el contrato USDT utilizando la dirección y ABI proporcionadas
           const usdtContract = new Contract(USDTAddress, USDTABI, signer);
           if (!usdtContract) {
@@ -130,7 +135,7 @@ export default function Home() {
   };
   // console.log("Contrat", contract);
   // console.log("tokenContrat", tokenContract);
-
+  
   // Función asíncrona para crear un escrow con tokens USDT
   async function createEscrow(value: string, price: string) {
     setIsLoading(true);
@@ -145,7 +150,7 @@ export default function Home() {
     if (!contract) {
       throw new Error("Contract not found");
     }
-
+    
     try {
       // Convierte los valores entrantes como strings para evitar problemas de precisión
       const valueParsed = parseFloat(value);
@@ -176,15 +181,18 @@ export default function Home() {
       const ethAmount = usdtAmount.mulUnsafe(ethPrice);
 
       console.log(`${value} USDT es equivalente a ${ethAmount.toString()} ETH`);
+      console.log("ethAmountFloat", ethAmount);
 
       const ethAmountFloat = parseFloat(ethAmount.toString());
       console.log(`XX 1 USDT es equivalente a ${ethAmountFloat.toFixed(18)} ETH`);
+      console.log("ethAmountFloat", ethAmountFloat);
 
 
       // Convertir los valores a BigNumber para usar en las transacciones
       const usdtAmountBN = ethers.parseUnits(value, 6);
       const ethAmountBN = ethers.parseEther(ethAmount.toString());
-
+      console.log("usdt amountBN", usdtAmountBN);
+      console.log("ETH amountBN", ethAmountBN);
       //Realizar el approve previo para permitir el envio de tokens
       // const addApproveTokenTx = await tokenContract.approve(CONTRACT_ADDRESS, valueInUSDTWei + fee, {
       const addApproveTokenTx = await tokenContract?.approve(CONTRACT_ADDRESS, usdtAmountBN, {
@@ -213,6 +221,7 @@ export default function Home() {
     }
   }
 
+  
   // Función asíncrona para crear un escrow con Ether nativo
   async function createEscrowNativeCoin(value: string, price: string) {
     setIsLoading(true);
@@ -580,7 +589,7 @@ export default function Home() {
 
 
   /// ================== Owner del protocolo  ==================
-
+  console.log("Contract", contract);
   //Obtener el dueño del contrato
   async function getowner() {
     try {
@@ -766,7 +775,7 @@ export default function Home() {
         eth: { precio: 2626.5, nombre: "Ethereum" },
         usdt: { precio: 1.01, nombre: "Tether" }
       };
-
+      console.log("PRICES", prices);
       setPrices(prices);
       setLastCallTime(currentTime); // Se actualiza el tiempo de la última llamada
       // console.log("PRICES", prices);
@@ -900,10 +909,10 @@ export default function Home() {
       <div>
         {/* <div className={styles.mainContainer}> */}
         <div className="mainContainer">
-          <h1>Towerbank</h1>
-          <img className="logo" src="/ikigii_logo.png" alt="Logo de Towerbank, intercambio p2p de criptomonedas" />
+          <h1>Money Bank Escrow</h1>
+          <img className="logo" src="/MoneyBank_logo.png" alt="Logo de Moneybank, intercambio p2p de criptomonedas" />
           <p>El intercambio de USDT - ETH entre particulares</p>
-          <p>De onchain a offchain a través de Towerbank</p>
+          <p>Depósitos asegurados que se liberan tras el intercambio</p>
           <div className="textContainer">
             <p>RÁPIDO</p>
             <p>EFICIENTE</p>
@@ -944,12 +953,11 @@ export default function Home() {
         <div className="text-container">
           <div>
             <div className="containerTitle">
-              <h1 className="title">Towerbank</h1>
-              <img className="logo" src="/ikigii_logo.png" alt="Logo de Towerbank, intercambio p2p de criptomonedas" />
-
-              {/* <p id="textVersion">Version: {versionTowerbank.data}</p> */}
-              {/* <p className="description">Peer to Peer USDT Exchange!</p> */}
-              <p className="description">Intercambio de USDT-ETH entre particulares</p>
+              <div className="title-logo-container">
+                <img className="logo" src="/MoneyBank_logo.png" alt="Logo de Moneybank, intercambio p2p de criptomonedas" />
+                <h1 className="title">Money Bank Escrow</h1>
+                <p className="description">Intercambio de USDT-ETH entre particulares</p>
+              </div>
               {address && <p className="show-balance">Dirección del usuario: {truncateEthAddress(address)}</p>}
               <div className="balances-container">
                 {ethBalance && <p className="show-balance">Balance de USDT: {balanceOf.toString()}</p>}
@@ -976,13 +984,12 @@ export default function Home() {
             </div>
             <div className='app-price-container'>
               <div className='app-prices'>
-                {prices && <p>ETH - DOLLAR:  {ethPrecio} </p>}
-                {prices && <p>USDT - DOLLAR:  {usdtPrecio} </p>}
+                {prices && <p>1 ETH in DOLLARS:  {' '} {ethPrecio} </p>}
+                {prices && <p>1 USDT in DOLLARS:  {' '}{usdtPrecio} </p>}
               </div>
               <div className='app-prices'>
-                {prices && <p>ETH - USDT: {valorEthEnUsd} </p>}
-                {prices && <p>USDT - ETH: {valorUsdEnEth} </p>}
-
+                {prices && <p>1 ETH in USDT: {' '}{valorEthEnUsd}</p>}
+                {prices && <p>1 USDT in ETH: {' '}{valorUsdEnEth}</p>}
               </div>
             </div>
             <div className="styles.containerData">
@@ -1144,7 +1151,7 @@ export default function Home() {
           {address ? (
             <p>Connected Address: {address}</p>
           ) : (
-            <button onClick={connectWallet}>Connectar Billetera</button>
+            <button onClick={connectWallet}>Conectar Billetera</button>
           )}
         </div>
       )}

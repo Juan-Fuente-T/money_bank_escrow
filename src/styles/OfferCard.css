@@ -32,7 +32,7 @@
 }
 
 .offerCard button {
-  background-color: #e2f212;
+  background-color: #ffb657;
   color: #0c2d59;
   border: none;
   border-radius: 5px;
@@ -43,7 +43,9 @@
 }
 
 .offerCard button:hover {
-  background-color: #d1e510;
+  background-color: #fdd197;
+  scale: 1.03;
+  /* background-color: #515dff; */
 }
 .offercard-button-container {
   display: flex;

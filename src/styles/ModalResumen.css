@@ -52,34 +52,30 @@
 
 .btn-cancel,
 .btn-confirm {
-  background-color: #e2f212; /* Fondo de botón amarillo claro */
+  background-color: #fac682; /* Fondo de botón amarillo claro */
   color: #0c2d59; /* Texto en azul oscuro */
   border: none;
   border-radius: 5px;
   padding: 10px 20px;
-  font-size: 16px;
+  font-size: 20px;
   cursor: pointer;
   text-transform: uppercase;
   margin: 20px;
 }
 
 .btn-cancel {
-  background-color: #ffffff; /* Rojo para el botón de cancelar */
+  background-color: #fac682;
   color: #0c2d59;
-  font-size: x-large;
-  border: 1px solid #0c2d59;
-  border-radius: 6px;
 }
 
 .btn-cancel:hover {
-  background-color: #0c2d59; /* Efecto hover para el botón de cancelar */
-  color: #ffffff;
-  border: 1px solid #ffffff;
-  border-radius: 6px;
+  background-color: #fac682; /* Efecto hover para el botón de cancelar */
+  scale: 1.03;
 }
 
 .btn-confirm:hover {
-  background-color: #d1e510; /* Efecto hover para el botón de aceptar */
+  background-color: #fdd197; /* Efecto hover para el botón de aceptar */
+  scale: 1.03;
 }
 
 .btn-cancel:focus,

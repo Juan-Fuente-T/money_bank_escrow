@@ -142,14 +142,15 @@ const FormularioOferta: React.FC<FormularioOfertaProps> = ({
             {prices && (
               <p>1 USDT: {(usdtPrecio / ethPrecio).toFixed(18)} eth </p>
             )}
-          </div>s
+          </div>
           <div>
             <button className="form-close-button" onClick={handleClose}>
               x
             </button>
           </div>
         </div>
-        <div>
+        <div className="conversor-container">
+          <p>Valor de cambio de USDT a ETH y viceversa</p>
           <div className="converter-container">
             <label htmlFor="usdt">USDT:</label>
             <input
@@ -173,7 +174,7 @@ const FormularioOferta: React.FC<FormularioOfertaProps> = ({
             {/* <p>USDT: {usdtValue}</p> */}
           </div>
         </div>
-        <div>
+        <div className="radio-container">
           <label htmlFor="usdt">
             <input
               type="radio"
@@ -183,7 +184,7 @@ const FormularioOferta: React.FC<FormularioOfertaProps> = ({
               checked={datosModal.crypto === "usdt"}
               onChange={handleChange}
             />
-            USDT
+            Seleccionar USDT como moneda de origen
           </label>
           <label htmlFor="eth">
             <input
@@ -194,27 +195,28 @@ const FormularioOferta: React.FC<FormularioOfertaProps> = ({
               checked={datosModal.crypto === "eth"}
               onChange={handleChange}
             />
-            ETH
+            Seleccionar ETH como moneda de origen
           </label>
         </div>
         <div className="inputs-container">
           <label htmlFor="value">
-            Cantidad - Usar hasta 18 decimales para ETH y 6 para USDT
+            Cantidad - Usar 18 decimales para ETH y 6 para USDT
           </label>
           <input
             type="text"
             id="value"
             name="value"
-            placeholder="Ejemplo 12.555577 USDT o 0.000000000000000111 ETH"
+            // placeholder="Ejemplo 12.555577 USDT o 0.000000000000000111 ETH"
+            placeholder={`Ejemplo 12.55667 USDT o 0.000111 ETH. Disponible: ${datosModal.crypto === "usdt" ? balanceOf.toString() : ethBalance } ${ ' ' } ${  datosModal.crypto === "usdt" ? "USDT" : "ETH" }` }
             value={datosModal.value}
             onChange={handleChange}
-          ></input>
-          <p>
+            ></input>
+          {/* <p>
             Disponible:{" "}
             {datosModal.crypto === "usdt" ? balanceOf.toString() : ethBalance}
-          </p>
+          </p> */}
           <label htmlFor="price">
-            Precio/unidad - Usar hasta 18 decimales para ETH y 6 para USDT
+            Precio por unidad - Usar 18 decimales para ETH y 6 para USDT
           </label>
           <input
             type="text"
@@ -249,8 +251,8 @@ const FormularioOferta: React.FC<FormularioOfertaProps> = ({
             id="conditions"
             name="conditions"
             placeholder="Condiciones de la venta"
-            rows={6}
-            cols={50}
+            rows={2}
+            cols={90}
             value={datosModal.conditions}
             onChange={handleChange}
           ></textarea>

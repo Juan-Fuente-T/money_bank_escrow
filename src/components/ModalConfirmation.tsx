@@ -29,7 +29,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ show, onClose, on
     return (
       <div className="modal-overlay-confirmation">
         <div className="modal-content-confirmation">
-          <button className="modal-close-confirmation" onClick={onClose}>X</button>
+          {/* <button className="modal-close-confirmation" onClick={onClose}>X</button> */}
           <h2>Confirmar</h2>
           <p>¿Estás seguro de que quieres aceptar esta oferta?</p>
           <p>Detalles de la oferta: {offer?.id}</p>
