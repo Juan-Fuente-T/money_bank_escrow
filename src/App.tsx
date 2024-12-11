@@ -14,8 +14,8 @@ import FormularioOferta from './components/FormularioOferta'
 import OfferCard from "./components/OfferCard";
 import { toast } from 'react-toastify';
 import truncateEthAddress from 'truncate-eth-address';
-import { useAccount, usePublicClient } from 'wagmi'
-
+import { useAccount, useBalance, usePublicClient } from 'wagmi'
+import { usePrices } from './hooks/usePrices';
 
 // Importaciones TEMPORALMENTE en deshuso
 // import truncateEthAddress from 'truncate-eth-address';
@@ -27,6 +27,7 @@ import "./App.css";
 import 'react-toastify/dist/ReactToastify.css';
 import { coinGeckoGetPricesKV } from "./utils/Prices";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { setBalance } from "viem/actions";
 // import styles from './App.module.css';
 // import styles from "../styles/Home.module.css";
 
@@ -83,18 +84,40 @@ export default function Home() {
   const ethPrecio = prices['eth']?.precio;
   const valorEthEnUsd = ethPrecio * usdtPrecio;
   const valorUsdEnEth = usdtPrecio / ethPrecio;
-
-  const publicClient = usePublicClient()
+  // const { data, isError, isLoading } = useBalance({
+  //   address: address,
+  // })
+  
   const { address: _address } = useAccount();
+  const { data, isError } = useBalance({
+    address: _address,
+  })
   useEffect(() => {
     if (_address) {
       setAddress(_address);
       setLoggedIn(true);
+      if (!isError && data?.value !== undefined) {
+        console.log("data, isError", data, isError, ethers.formatEther(data?.value))
+        setEthBalance(ethers.formatEther(data?.value)); // Convierte bigint a string
+      }
     } else {
       setLoggedIn(false);
     }
-  }, [_address]);
+  }, [_address, data, isError]);
   
+//   const { data: _prices } = usePrices();
+// console.log("PRICES: ", data?.value, _prices, _prices?.eth)
+// if (data !== undefined) {
+//   const transformedPrices = {
+//     eth: {
+//       precio: Number(data.value), // Usa el valor como precio
+//       nombre: data.symbol,       // Usa el símbolo como nombre
+//     },
+//     // Agrega más monedas aquí si es necesario
+//   };
+
+//   setPrices(transformedPrices);
+// }
   /// ================== Fee Seller ==================
   // Obtener la tarifa del vendedor desde el contrato inteligente
   const getFeeSeller = useCallback(async () => {
@@ -772,9 +795,11 @@ export default function Home() {
 
       // Se actualiza el estado con los balances y las ofertas
       const balance = await tokenContract?.balanceOf(address);
+      console.log("balance", balance);
       setBalanceOf(balance);
-      const _balance = await provider?.getBalance(userAddress);
-      setEthBalance(_balance ? ethers.formatEther(_balance) : '');
+      // const _balance = await provider?.getBalance(address);
+      // console.log("_balance", _balance);
+      // setEthBalance(_balance ? ethers.formatEther(_balance) : '');
       setNativeOffers(fetchedNativeOffers);
       setUsdtOffers(fetchedUsdtOffers);
 
@@ -783,21 +808,18 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  }, [contract, address, provider, tokenContract]);
+  }, [contract, address, tokenContract]);
+  // const refreshInterval = 60000; // 1 minuto en milisegundos
+  const refreshInterval = 5000; // 1 minuto en milisegundos
 
   // Función para obtener los precios de las criptomonedas 
   const fetchPrices = useCallback(async () => { //DESACTIVADA LA LLAMADA A LA API DURANTE EL DESARROLLO
     const currentTime = Date.now();
-    // const timeSinceLastCall = currentTime - lastCallTime;
+    const timeSinceLastCall = currentTime - lastCallTime;
 
-    //Limita las llamadas a la api a una vez cada 60 segundos
-    // if (timeSinceLastCall < 60000) { // 60000 milisegundos = 60 segundos
-    //   //console.log("Esperando...", timeSinceLastCall, "milisegundos desde la última llamada.");
-    //   return; // No realiza la llamada si no ha pasado suficiente tiempo
-    // }
-    // if (lastCallTime === 0 || timeSinceLastCall >= 60000) { // 60000 milisegundos = 60 segundos
-    // //console.log("Esperando respuesta de la API ...", timeSinceLastCall, "milisegundos desde la última llamada.");
-
+    // Limita las llamadas a la api a una vez cada 60 segundos
+    // Realiza la llamada si ha pasado suficiente tiempo
+    if (lastCallTime === 0 || timeSinceLastCall >= refreshInterval) {
     try {
       // let prices = await coinGeckoGetPricesKV({ requestedCoins: ['eth', 'usdt'] });
       //DESACTIVADA LA LLAMADA A LA API DURANTE EL DESARROLLO
@@ -808,20 +830,29 @@ export default function Home() {
       console.log("PRICES", prices);
       setPrices(prices);
       setLastCallTime(currentTime); // Se actualiza el tiempo de la última llamada
-      // console.log("PRICES", prices);
-      // console.log(prices['eth'].precio); // Precio de ETH
-      // console.log(prices['usdt'].precio); // Precio de USDT
+      console.log("PRICES", prices);
+      console.log(prices['eth'].precio); // Precio de ETH
+      console.log(prices['usdt'].precio); // Precio de USDT
     } catch (error) {
       console.error("Error fetching prices:", error);
     }
-    // } else {
-    //   console.log("Esperando...", currentTime - lastCallTime, "milisegundos desde la última llamada.");
-    // }
-    // }, [lastCallTime]); 
-  }, []);
+    } else {
+      console.log("Esperando...", currentTime - lastCallTime, "milisegundos desde la última llamada.");
+    }
+    }, [lastCallTime]); 
+
+  // Llama a fetchPrices inmediatamente al montar el componente
+  useEffect(() => {
+    fetchPrices(); // Llama a fetchPrices cuando se monta el componente
+
+    // Establece un intervalo para llamar a fetchPrices cada cierto tiempo
+    const intervalId = setInterval(fetchPrices, refreshInterval);
+
+    // Limpia el intervalo cuando el componente se desmonta
+    return () => clearInterval(intervalId);
+  }, [fetchPrices]);
 
 
-  // Efecto para inicializar las operaciones al montar el componente
 
   const fetchFeesDoneRef = useRef(false);
 
