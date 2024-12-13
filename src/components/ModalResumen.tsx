@@ -43,8 +43,6 @@ type ModalResumenProps = {
         <p>Precio por unidad: {datosModal.price}</p>
         {/* <p>Límite máximo de venta: {datosModal.maximo}</p>
         <p>Límite mínimo de venta: {datosModal.minimo}</p> */}
-        {/* <p>Modo de pago: { datosModal.payment_mode}</p>
-      <p>Ubicación: { datosModal.location}</p> */}
         <p>Condiciones de venta: {datosModal.conditions}</p>
         <div className="modal-buttons">
           <button className="btn-cancel" onClick={onCloseModal} disabled={isButtonDisabled}>

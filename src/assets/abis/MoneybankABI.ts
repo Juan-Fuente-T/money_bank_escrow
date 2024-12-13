@@ -1,4 +1,4 @@
-export const TowerbankABI = [
+export const MoneybankABI = [
 	{
 		"inputs": [],
 		"name": "AddressIsNotWhitelisted",

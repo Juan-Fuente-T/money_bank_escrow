@@ -97,7 +97,7 @@ const FormularioOferta: React.FC<FormularioOfertaProps> = ({
     let newValue = value.replace(",", ".");
 
     // Verifica si el nuevo valor es una cadena vacía o contiene caracteres no numéricos
-    if (!newValue || isNaN(parseFloat(newValue))) {
+    if (!newValue || isNaN(parseFloat(newValue.trim()))) {
       // Limpia el valor del campo correspondiente
       if (name === "usdt") {
         setUsdtValue(initialUsdtValue);
@@ -113,13 +113,16 @@ const FormularioOferta: React.FC<FormularioOfertaProps> = ({
       setUsdtValue(newValue);
       // Convierte USDT a ETH: Divide la cantidad de USDT por el precio de ETH en dólares
       const convertedEthValue = parseFloat(newValue) * usdtPriceInEth; // Ajusta los decimales a 18 para ETH
+      console.log("convertedEthValue", convertedEthValue.toFixed(18));
       setEthValue(convertedEthValue.toFixed(18));
     } else if (name === "eth") {
       setEthValue(newValue);
       // Convierte ETH a USDT: Multiplica la cantidad de ETH por el precio de ETH en dólares
       const convertedUsdtValue = parseFloat(newValue) * ethPriceInUsdt; // Ajusta los decimales a 6 para USDT
+      console.log("convertedUsdtValue", parseFloat(newValue) * ethPriceInUsdt);
       setUsdtValue(convertedUsdtValue.toFixed(6));
     }
+    console.log("usdtValue", usdtValue, "ethValue", ethValue);
   };
   /**
    * Cierra el formulario y reinicia los datos modales.
@@ -215,7 +218,8 @@ const FormularioOferta: React.FC<FormularioOfertaProps> = ({
               id="value"
               name="value"
               // placeholder="Ejemplo 12.555577 USDT o 0.000000000000000111 ETH"
-              placeholder={`Ej. 12.55667 USDT o 0.000111 ETH. Disponible: ${datosModal.crypto === "usdt" ? balanceOf.toString() : ethBalance} ${' '} ${datosModal.crypto === "usdt" ? "USDT" : "ETH"}`}
+              // placeholder={`Ej. 12.55667 USDT o 0.000111 ETH. Disponible: ${datosModal.crypto === "usdt" ? balanceOf.toString() : ethBalance} ${' '} ${datosModal.crypto === "usdt" ? "USDT" : "ETH"}`}
+              placeholder="Ej. 12.55667 USDT o 0.000111 ETH."
               value={datosModal.value}
               onChange={handleChange}
             ></input>
