@@ -4,17 +4,17 @@ import "../styles/FormularioOferta.css";
 // Definición de las propiedades que acepta el componente FormularioOferta
 type FormularioOfertaProps = {
   /**
-   * Función que se ejecuta al enviar el formulario.
-   * @param e - Evento de formulario que se está enviando.
-   */
+ * Function executed upon form submission.
+ * @param e - Form event being submitted.
+ */
   handleSubmitModal: (e: React.FormEvent<HTMLFormElement>) => void;
   /**
-   * Datos que se mostrarán en el modal.
-   * @property crypto - Tipo de criptomoneda.
-   * @property value - Valor de la oferta.
-   * @property price - Precio actual de la criptomoneda.
-   * @property conditions - Condiciones de la oferta.
-   */
+ * Data to be displayed in the modal.
+ * @property crypto - Type of cryptocurrency.
+ * @property value - Offer value.
+ * @property price - Current cryptocurrency price.
+ * @property conditions - Offer conditions.
+ */
   datosModal: {
     crypto: string;
     value: string;
@@ -22,8 +22,8 @@ type FormularioOfertaProps = {
     conditions: string;
   };
   /**
-   * Función que maneja los cambios en los campos de entrada.
-   * @param e - Evento de cambio en el campo de entrada.
+   * Function that handles changes in input fields.
+   * @param e -   Input event being changed.
    */
   handleChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -41,18 +41,18 @@ type FormularioOfertaProps = {
 };
 
 /**
- * Componente funcional que representa un formulario para realizar ofertas de criptomonedas.
+ * Functional component representing a form for making cryptocurrency offers.
  *
- * @param {object} props - Propiedades del componente.
- * @param {function} props.handleSubmitModal - Función que se ejecuta al enviar el formulario.
- * @param {object} props.datosModal - Datos que se mostrarán en el modal.
- * @param {function} props.handleChange - Función que maneja los cambios en los campos de entrada.
- * @param {function} props.onCloseForm - Función que se ejecuta al cerrar el formulario.
- * @param {string} props.ethBalance - Balance de la cuenta en ETH.
- * @param {number} props.balanceOf - Balance de la cuenta en la criptomoneda seleccionada.
- * @param {object} props.prices - Precios de las criptomonedas disponibles.
- * @return {JSX.Element} - Componente renderizado.
- */
+ * @param {object} props - Component properties.
+ * @param {function} props.handleSubmitModal - Function executed upon form submission.
+ * @param {object} props.datosModal - Data to be displayed in the modal.
+ * @param {function} props.handleChange - Function that handles changes in input fields.
+ * @param {function} props.onCloseForm - Function executed when the form is closed.
+ * @param {string} props.ethBalance - ETH account balance.
+ * @param {number} props.balanceOf - Balance of the selected cryptocurrency.
+ * @param {object} props.prices - Prices of available cryptocurrencies.
+ * @return {JSX.Element} - Rendered component.
+*/
 const FormularioOferta: React.FC<FormularioOfertaProps> = ({
   handleSubmitModal,
   datosModal,
@@ -78,26 +78,24 @@ const FormularioOferta: React.FC<FormularioOfertaProps> = ({
   const [usdtValue, setUsdtValue] = useState(initialUsdtValue);
   const [ethValue, setEthValue] = useState(initialEthValue);
 
-  /**
-   /**
-   * Maneja los cambios en los campos de entrada de USDT y ETH, 
-   * actualizando los valores correspondientes y realizando conversiones 
-   * entre ambas criptomonedas según sea necesario.
-   *
-   * @param {object} event - Evento de cambio en el campo de entrada.
-   * @param {object} event.target - Objeto que desencadenó el evento.
-   * @param {string} event.target.name - Nombre del campo de entrada.
-   * @param {string} event.target.value - Valor del campo de entrada.
-   * @return {void}
-   */
+/**
+ * Handles changes in the USDT and ETH input fields, updating the corresponding values 
+ * and performing conversions between the two cryptocurrencies as necessary.
+ *
+ * @param {object} event - The change event from the input field.
+ * @param {object} event.target - The object that triggered the event.
+ * @param {string} event.target.name - The name of the input field.
+ * @param {string} event.target.value - The value of the input field.
+ * @return {void}
+ */
   const handleInputChange = (event: { target: { name: string; value: string} }) => {
     const { name, value } = event.target;
 
-    // Reemplaza comas por puntos
-    let newValue = value.replace(",", ".");
-
+    // Reemplaza comas por puntos y elimina espacios en blanco
+    let newVal = value.replace(",", ".");
+    let newValue = newVal.trim();
     // Verifica si el nuevo valor es una cadena vacía o contiene caracteres no numéricos
-    if (!newValue || isNaN(parseFloat(newValue.trim()))) {
+    if (!newValue || isNaN(parseFloat(newValue))) {
       // Limpia el valor del campo correspondiente
       if (name === "usdt") {
         setUsdtValue(initialUsdtValue);
@@ -127,7 +125,7 @@ const FormularioOferta: React.FC<FormularioOfertaProps> = ({
     // console.log("usdtValue", usdtValue, "ethValue", ethValue);
   };
   /**
-   * Cierra el formulario y reinicia los datos modales.
+   * Close the form and reset the state.
    *
    * @return {void}
    */
@@ -208,7 +206,7 @@ const FormularioOferta: React.FC<FormularioOfertaProps> = ({
             Seleccionar ETH como moneda de origen
           </label>
         </div>
-        <p className="text-decimals">Usar 18 decimales para ETH y 6 para USDT. {`Tu saldo disponible es: ${datosModal.crypto === "usdt" ? balanceOf.toString() : ethBalance} ${' '} ${datosModal.crypto === "usdt" ? "USDT" : "ETH"}`}</p>
+        <p className="text-decimals">Usar máximo 18 decimales para ETH y 6 para USDT. {`Tu saldo disponible es: ${datosModal.crypto === "usdt" ? balanceOf.toString() : ethBalance} ${' '} ${datosModal.crypto === "usdt" ? "USDT" : "ETH"}`}</p>
         <div className="inputs-container">
           <div className="inputs">
             <label htmlFor="value">
@@ -221,7 +219,7 @@ const FormularioOferta: React.FC<FormularioOfertaProps> = ({
               name="value"
               // placeholder="Ejemplo 12.555577 USDT o 0.000000000000000111 ETH"
               // placeholder={`Ej. 12.55667 USDT o 0.000111 ETH. Disponible: ${datosModal.crypto === "usdt" ? balanceOf.toString() : ethBalance} ${' '} ${datosModal.crypto === "usdt" ? "USDT" : "ETH"}`}
-              placeholder="Ej. 12.55667 USDT o 0.000111 ETH."
+              placeholder="Ej. 12.5566 USDT o 0.000111 ETH."
               value={datosModal.value}
               onChange={handleChange}
             ></input>
@@ -237,7 +235,7 @@ const FormularioOferta: React.FC<FormularioOfertaProps> = ({
               type="text"
               id="price"
               name="price"
-              placeholder="Ej. 2600.49 o 0.000384542166381116 ETH"
+              placeholder="Ej. 2600.50 o 0.000384542166381116 ETH"
               value={datosModal.price}
               onChange={handleChange}
             ></input>

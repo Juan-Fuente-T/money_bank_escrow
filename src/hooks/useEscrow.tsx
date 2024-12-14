@@ -4,9 +4,23 @@ import { CONTRACT_ADDRESS } from "../assets/constants";
 import { USDTAddress } from "../assets/constants";
 import { toast } from "react-toastify";
 
+/**
+ * Manages the creation, cancellation, and acceptance of escrows using the contract and token contract provided.
+ *
+ * @param {Contract | null} contract - The main contract instance.
+ * @param {Contract | null} tokenContract - The token contract instance.
+ * @return {object} Functions to create, cancel, and accept escrows.
+ */
 export function useEscrow(contract: Contract | null, tokenContract: Contract | null) {
-  const [isLoading, setIsLoading] = useState(false);
 
+    /**
+   * Creates an escrow using USDT tokens.
+   *
+   * @param {string} value - The amount of USDT tokens for the escrow.
+   * @param {string} price - The price in USDT for the escrow (per ETH or native token).
+   * @param {boolean} isEthOffer - Indicates if the escrow is in ETH or USDT.
+   * @throws Will throw an error if any parameter is invalid or if transaction fails.
+   */
   const createEscrow = async (value: string, price: string, isEthOffer: boolean) => {
     // setIsLoading(true);
     // Codificacion de firmas para llamadas a funciones, A IMPLEMENTAR
@@ -15,7 +29,7 @@ export function useEscrow(contract: Contract | null, tokenContract: Contract | n
     // console.log("HASH", hash);
     // //const signature = await signMessage(message, provider);
     // console.log("SIGNATURE", signature);
-    setIsLoading(true);
+
 
     if (!isEthOffer) {
 
@@ -23,8 +37,8 @@ export function useEscrow(contract: Contract | null, tokenContract: Contract | n
       try {
         if (!contract || !tokenContract) throw new Error("Contract not found");
         // Convierte los valores entrantes como strings para evitar problemas de precisión
-        const valueParsed = parseFloat(value);
-        const priceParsed = parseFloat(price);
+        const valueParsed = parseFloat(value.trim());
+        const priceParsed = parseFloat(price.trim());
         // console.log("valueParsed", valueParsed);
         // console.log("priceParsed", priceParsed);
 
@@ -36,27 +50,18 @@ export function useEscrow(contract: Contract | null, tokenContract: Contract | n
         // const valueFixed = ethers.FixedNumber.from(0.0002);
         // const pricePerEth = ethers.FixedNumber.from(2000.5);
 
-        // Crear FixedNumber para USDT (6 decimales)
-        const usdtAmount = ethers.FixedNumber.fromValue(
-          ethers.parseUnits(valueParsed.toString(), 6),
-          6
-        );
+        // Convertir el valor en USDT a wei (6 decimales)
+        const usdtAmountBN = ethers.parseUnits(valueParsed.toString(), 6);
 
-        // Crear FixedNumber para el precio de ETH (18 decimales)
-        const ethPrice = ethers.FixedNumber.fromValue(
-          ethers.parseUnits(priceParsed.toString(), 18),
-          18
-        );
-        // console.log("usdtAmount", usdtAmount);
-        // console.log("ethPrice", ethPrice);
-        // Calcular cuánto ETH equivale a 1 USDT
-        const ethAmount = usdtAmount.mulUnsafe(ethPrice);
+        // Convertir el precio de ETH (precio por USDT) a una cantidad en wei (18 decimales)
+        const pricePerEthBN = ethers.parseUnits(priceParsed.toString(), 18);
 
-        // Convertir los valores a BigNumber para usar en las transacciones
-        const usdtAmountBN = ethers.parseUnits(value, 6);
-        const ethAmountBN = ethers.parseEther(ethAmount.toString());
-        // console.log("usdtAmountBN", usdtAmountBN);
-        // console.log("ethAmountBN", ethAmountBN);
+        // Calcular el equivalente en ETH en wei
+        const ethAmountBN = pricePerEthBN * (BigInt(valueParsed));
+
+        console.log("usdtAmountBN:", usdtAmountBN.toString()); // Ejemplo: 100000000
+        console.log("pricePerEthBN:", pricePerEthBN.toString()); // Ejemplo: 294761418356924
+        console.log("ethAmountBN:", ethAmountBN); // Resultado esperado en ether
 
         //Realizar el approve previo para permitir el envio de tokens
         // const addApproveTokenTx = await tokenContract.approve(CONTRACT_ADDRESS, valueInUSDTWei + fee, {
@@ -75,14 +80,12 @@ export function useEscrow(contract: Contract | null, tokenContract: Contract | n
       } catch (error) {
         toast.error("No se ha podido crear la oferta USDT");
         console.error("Error creando la oferta USDT:", error);
-      } finally {
-        setIsLoading(false);
       }
     } else {
       try {
         //Realizar cálculos necesarios para convertir los valores a unidades adecuadas para la transacción
-        const ethAmount = parseFloat(value);
-        const usdtPricePerEth = parseFloat(price);
+        const ethAmount = parseFloat(value.trim());
+        const usdtPricePerEth = parseFloat(price.trim());
 
         if (ethAmount <= 0 || usdtPricePerEth <= 0) {
           throw new Error("Cantidad de ETH o precio en USDT inválido");
@@ -114,14 +117,19 @@ export function useEscrow(contract: Contract | null, tokenContract: Contract | n
       } catch (error) {
         console.error("Error creando la oferta de native coin:", error);;
         toast.error("No se ha podido crear la oferta ETH");
-      } finally {
-        setIsLoading(false);
       }
     };
   }
+
+  /**
+   * Cancels an escrow offer.
+   *
+   * @param {number} offerId - The ID of the offer to cancel.
+   * @return {Promise<void>}
+   * @throws Will throw an error if the offer ID is not defined or if the transaction fails.
+   */
   const cancelEscrow = async (offerId: number) => {
     if (!offerId) throw new Error("Offer ID no definido");
-    setIsLoading(true);
     try {
       if (!contract || !tokenContract) throw new Error("Contract not found");
       const cancelTx = await contract?.cancelEscrow(offerId, {
@@ -132,12 +140,18 @@ export function useEscrow(contract: Contract | null, tokenContract: Contract | n
     } catch (error) {
       toast.error("No se ha podido cancelar la oferta USDT");
       console.error("Error cancelando la oferta USDT:", error);
-    } finally {
-      setIsLoading(false);
     }
   };
+
+  /**
+   * Accepts an escrow offer.
+   *
+   * @param {number} offerId - The ID of the offer to accept.
+   * @param {number} cost - The cost of the escrow.
+   * @param {boolean} isEthOffer - Indicates if the escrow is in ETH or USDT.
+   * @throws Will throw an error if any parameter is not defined or if the transaction fails.
+   */
   async function acceptEscrow(offerId: number, cost: number, isEthOffer: boolean) {
-    // setIsLoading(true);
     // Codificacion de firmas para llamadas a funciones, A IMPLEMENTAR
     // const message = "Hola, Moneybank pagará el gas por ti";
     // //const hash = hashMessage(message);
@@ -149,7 +163,6 @@ export function useEscrow(contract: Contract | null, tokenContract: Contract | n
     if (!offerId || !cost) {
       throw new Error("Offer ID or cost no defined");
     }
-    setIsLoading(true);
     if (!isEthOffer) {
       try {
         // Realiza la transacción para aceptar el escrow con tokens USDT
@@ -163,8 +176,6 @@ export function useEscrow(contract: Contract | null, tokenContract: Contract | n
       } catch (error) {
         toast.error("No se ha podido aceptar la oferta USDT");
         console.error("No se ha podido aceptar la oferta USDT:", error);
-      } finally {
-        setIsLoading(false);
       }
     } else {
       try {
@@ -184,10 +195,8 @@ export function useEscrow(contract: Contract | null, tokenContract: Contract | n
       } catch (error) {
         toast.error("No se ha podido aceptar la oferta ETH");
         console.error("Error aceptando la oferta de native coin:", error);
-      } finally {
-        setIsLoading(false);
       }
     }
   }
-  return { isLoading, createEscrow, cancelEscrow, acceptEscrow };
+  return { createEscrow, cancelEscrow, acceptEscrow };
 }

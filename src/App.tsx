@@ -6,13 +6,15 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { Contract, ethers } from 'ethers';
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import LoadingSpinner from "./utils/LoadingSpinner";
-import { useAsyncTask } from "./hooks/useAsyncTask";
 
 import ModalResumen from './components/ModalResumen';
 import FormularioOferta from './components/FormularioOferta'
 import OfferCard from "./components/OfferCard";
-import { useAccount, useBalance } from 'wagmi'
+import { useAccount, useBalance, useProvider } from 'wagmi'
 import { usePrices } from './hooks/usePrices';
+import useFees from "./hooks/useFees";
+import { useEscrow } from "./hooks/useEscrow";
+import { useContract, useSigner } from 'wagmi';
 
 // Importaciones TEMPORALMENTE en deshuso
 // import truncateEthAddress from 'truncate-eth-address';
@@ -22,8 +24,6 @@ import { usePrices } from './hooks/usePrices';
 // Estilos 
 import "./App.css";
 import 'react-toastify/dist/ReactToastify.css';
-import useFees from "./hooks/useFees";
-import { useEscrow } from "./hooks/useEscrow";
 
 // Extensión de la interfaz Window para incluir ethereum como una propiedad opcional
 declare global {
@@ -33,18 +33,8 @@ declare global {
 }
 
 export default function Home() {
-  // Estados TEMPORALMENTE en deshuso
-  // const [stableAddress, setStableAddress] = useState('');
-  // const [approveValue, setApproveValue] = useState('');
-  // const [refundNumber, setRefundNumber] = useState(0);
-  // const [refundNumberNativeC, setRefundNumberNativeC] = useState(0);
-  // const [orderId] = useState(0);
-  // const [allowance, setAllowance] = useState(0);
-  
   // Estados para manejar el montado del componente, carga, modales, balances, direcciones, proveedores, contratos, etc.
-  const[isCharging, setIsCharging] = useState(false);
   const [isMounted, setIsMounted] = useState(false);// State variable to know if the component has been mounted yet or not
-  // const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [datosModal, setDatosModal] = useState({
     crypto: "usdt",
@@ -54,34 +44,76 @@ export default function Home() {
     minimo: '',
     conditions: ""
   });
-  const [balanceOf, setBalanceOf] = useState(0); //ERC20 token balance
-  const [ethBalance, setEthBalance] = useState('');//ETH balance
+  const [balanceOf, setBalanceOf] = useState<number>(0); //ERC20 token balance
+  const [ethBalance, setEthBalance] = useState<string>('');//ETH balance
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
   const [address, setAddress] = useState<string>("");
   const [contract, setContract] = useState<Contract | null>(null);
   const [tokenContract, setTokenContract] = useState<Contract | null>(null);
-  const [isFormVisible, setIsFormVisible] = useState(false);
+  const [isFormVisible, setIsFormVisible] = useState<boolean>(false);
   const [nativeOffers, setNativeOffers] = useState<any[]>([]);
   const [usdtOffers, setUsdtOffers] = useState<any[]>([]);
   const [feeBuyer, setFeeBuyer] = useState<number>(0);
   const [feeSeller, setFeeSeller] = useState<number>(0);
-  let prices: { [key: string]: { precio: number; nombre: string; } } = {};
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  // const { runTask } = useAsyncTask();
 
   const { address: _address } = useAccount();
-  const { data, isError } = useBalance({address: _address});
+  const { data, isError } = useBalance({ address: _address });
   const { fees, fetchFees } = useFees(contract);
-  // const { runTask } = useAsyncTask();
+  let prices: { [key: string]: { precio: number; nombre: string; } } = {};
+
+
+ /** 
+ * Sets the component as mounted.
+ */
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   
-  
+  /** 
+   * Initializes the contract with the user's wallet if available.
+ * 
+ * @async
+ */
+   useEffect(() => {
+    const initializeContract = async () => {
+      try {
+        if (typeof window.ethereum !== 'undefined' && address) {
+          const provider = new ethers.BrowserProvider(window.ethereum);
+          const signer = await provider.getSigner();
+          const newContract = new ethers.Contract(CONTRACT_ADDRESS, MoneybankABI, signer);
+          setContract(newContract);
+          const tokenContract = new ethers.Contract(USDTAddress, USDTABI, signer);
+          setTokenContract(tokenContract);
+          address ? setLoggedIn(true) : setLoggedIn(false);
+        }
+      } catch {
+        console.error("Error initializing contract");
+      }
+    };
+    if (address) {
+      initializeContract();
+    }
+  }, [address]);
+
+ 
+  /** 
+   * Effect to update the state when the user's address changes.
+   * Sets the address, verifies if the user is logged in, fetches fees,
+   * and updates the ETH balance.
+   */
   useEffect(() => {
     if (_address) {
       setAddress(_address);
       setLoggedIn(true);
       fetchFees();
-      if(fees.feeBuyer !== null && fees.feeSeller !== null) {
+      // Sets the fees for buyer and seller if they are available
+      if (fees.feeBuyer !== null && fees.feeSeller !== null) {
         setFeeBuyer(fees?.feeBuyer);
         setFeeSeller(fees?.feeSeller);
       }
+       // Sets the Ethereum balance if no errors are found and the data is available
       if (!isError && data?.value !== undefined) {
         setEthBalance(ethers.formatEther(data?.value)); // Convierte bigint a string
       }
@@ -90,8 +122,13 @@ export default function Home() {
     }
   }, [_address, data, isError, fetchFees, fees.feeBuyer, fees.feeSeller]);
 
+  /** 
+ * Retrieves cryptocurrency prices and transforms them into a manageable object.
+ * The prices are used for conversions between ETH and USDT.
+ */
   const { data: _prices } = usePrices();
 
+  // Transform price data from usePrices into a more usable structure
   if (_prices !== undefined) {
     const transformedPrices = {
       eth: {
@@ -106,107 +143,91 @@ export default function Home() {
 
     prices = transformedPrices;
   }
-
   const usdtPrecio = prices['usdt']?.precio;
   const ethPrecio = prices['eth']?.precio;
   const valorEthEnUsd = ethPrecio * usdtPrecio;
   const valorUsdEnEth = usdtPrecio / ethPrecio;
-  const { isLoading, createEscrow, cancelEscrow, acceptEscrow } = useEscrow(contract, tokenContract);
-  async function handleCreateEscrow(value: string, price: string, isEthOffer: boolean) {
-    setIsCharging(true);
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    await createEscrow(value, price, isEthOffer);
-    fetchOffers();
-    handleCloseForm();
-    setIsCharging(false);
-  }
 
-    /**
-     * Función asíncrona para cancelar una oferta en la UI
-     * @param value - El valor de la oferta en USDT
-   * @param id - El ID de la oferta a cancelar
+  const { createEscrow, cancelEscrow, acceptEscrow } = useEscrow(contract, tokenContract);
+ 
+  /**
+   * Handles the creation of a new escrow by interacting with the smart contract.
+   * Fetches updated offers and resets the form after successful creation.
+   *
+   * @param {string} value - The amount being offered.
+   * @param {string} price - The price per unit of the offer.
+   * @param {boolean} isEthOffer - Whether the offer is in native ETH.
+   * @throws Will log an error if the contract interaction fails.
    */
+  async function handleCreateEscrow(value: string, price: string, isEthOffer: boolean) {
+  
+    // setTimeout(() => {
+    //   setIsLoading(true);
+    // }, 1000);
+    setIsLoading(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      console.log("ISLOADING1", isLoading);
+      await createEscrow(value, price, isEthOffer);
+      fetchOffers();
+      handleCloseForm();
+    } catch (error) {
+      console.error("Error al cancelar el escrow:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+  /**
+  * Cancels an existing escrow by its ID.
+  * Updates the offers list after successful cancellation.
+  *
+  * @param {number} offerId - The ID of the escrow to be canceled.
+  * @throws Will log an error if the cancellation fails.
+  */
   async function handleCancelEscrow(offerId: number) {
-      setIsCharging(true);
-      try {
-        await cancelEscrow(offerId);
-        fetchOffers();
-        handleCloseForm();
-      } catch (error) {
-        console.error("Error al cancelar el escrow:", error);
-      }finally {
-        setIsCharging(false);
-      }
+    setIsLoading(true);
+    try {
+      console.log("ISLOADING1", isLoading);
+      await cancelEscrow(offerId);
+      fetchOffers();
+      handleCloseForm();
+    } catch (error) {
+      console.error("Error al cancelar el escrow:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }
-  
+  /**
+   * Accepts an escrow offer by interacting with the smart contract.
+   * Fetches updated offers after successful acceptance.
+   *
+   * @param {number} offerId - The ID of the offer to accept.
+   * @param {number} cost - The total cost of the offer.
+   * @param {boolean} isEthOffer - Whether the offer is in native ETH.
+   * @throws Will log an error if the acceptance process fails.
+   */
   async function handleAcceptEscrow(offerId: number, cost: number, isEthOffer: boolean) {
-    setIsCharging(true);
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    await acceptEscrow(offerId, cost, isEthOffer)
-    fetchOffers();
-    handleCloseForm();
-    setIsCharging(false);
+    setIsLoading(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await acceptEscrow(offerId, cost, isEthOffer)
+      fetchOffers();
+      handleCloseForm();
+    } catch (error) {
+      console.error("Error al cancelar el escrow:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }
-
-  // Función asíncrona para conectar la billetera del usuario con la aplicación
-  // const connectWallet = async () => {
-    //   if (window.ethereum) {
-      //     try {
-        //       // Solicitar al usuario que conecte su billetera
-  //       const provider = new ethers.BrowserProvider(window.ethereum);
-  //       console.log("provider ", provider);
-  
-  //       // Obtiene el signer del proveedor para firmar transacciones
-  //       const signer = await provider.getSigner();
-  //       console.log("signer", signer);
-  
-  //       // Obtiene la dirección del usuario conectado
-  //       const userAddress = await signer.getAddress();
-  //       setAddress(userAddress);
-  //       setProvider(provider);
-  //       setSigner(signer);
-  //       // Actualiza el estado de conexión basado en la dirección del usuario
-  //       userAddress ? setLoggedIn(true) : setLoggedIn(false);
-  //       // Verifica si tanto el proveedor como el signer están inicializados correctamente
-  //       if (provider && signer) {
-    //         // Inicializa el contrato de Moneybank utilizando la dirección y ABI proporcionadas
-  //         const moneybankContract = new Contract(CONTRACT_ADDRESS, MoneybankABI, signer);
-  //         if (!moneybankContract) {
-    //           console.error("Moneybank contract initialization failed");
-    //         } else {
-      //           console.log("Moneybank Contract initialized:", moneybankContract);
-      //         }
-      //         console.log("Contract:", moneybankContract);
-  //         setContract(moneybankContract);
-  //         // console.log("Contract:", moneybankContract);
-  //         console.log("userAddress", userAddress);
-  //         // Inicializa el contrato USDT utilizando la dirección y ABI proporcionadas
-  //         const usdtContract = new Contract(USDTAddress, USDTABI, signer);
-  //         if (!usdtContract) {
-  //           console.error("USDT contract initialization failed");
-  //         } else {
-  //           console.log("USDT Contract initialized:", usdtContract);
-  //         }
-  //         setTokenContract(usdtContract);
-  //         console.log("TOKENContract:", usdtContract);
-  //       } else {
-  //         console.error("Provider or Signer not initialized");
-  //       }
-  //     } catch (err) {
-  //       console.error("User rejected the connection:", err);
-  //     }
-  //   } else {
-  //     console.error("No Ethereum provider found. Install MetaMask or another wallet.");
-  //   }
-  // };
-
-  
-  // Función para obtener las ofertas disponibles
+  /**
+   * Fetches all active offers from the smart contract and updates the state.
+   * Separates native (ETH) offers from USDT offers for easier UI rendering.
+   *
+   * @throws Will log an error if fetching offers fails.
+   */
   const fetchOffers = useCallback(async () => {
     if (!contract) return;
-    setIsCharging(true);
-    
-    // setIsLoading(true);
+    setIsLoading(true);
     try {
       const orderId = await contract.orderId();
       const fetchedNativeOffers: any[] = [];
@@ -235,21 +256,12 @@ export default function Home() {
       setBalanceOf(balance);
       setNativeOffers(fetchedNativeOffers);
       setUsdtOffers(fetchedUsdtOffers);
-      
     } catch (error) {
       console.error("Error al obtener ofertas:", error);
     } finally {
-      setIsCharging(false);
-      // setIsLoading(false);
+      setIsLoading(false);
     }
   }, [contract, address, tokenContract]);
-  // const refreshInterval = 60000; // 1 minuto en milisegundos
-  // const refreshInterval = 5000; // 1 minuto en milisegundos
-
-
-
-
-
 
   const fetchFeesDoneRef = useRef(false);
 
@@ -261,13 +273,14 @@ export default function Home() {
       }
 
       fetchOffers();
-      // getAllowance();
     };
     fetchData();
-  // }, [fetchOffers, getAllowance, fetchFees]);
   }, [fetchOffers, fetchFees]);
 
-  // Función para manejar cambios en los inputs del formulario
+ /** 
+ * Handles changes in the form inputs.
+ * If a new cryptocurrency is selected, resets associated data.
+ */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, type, value } = e.target;
     if (type === "radio" && name === "crypto") {
@@ -288,7 +301,9 @@ export default function Home() {
       }));
     }
   };
-  // Función para manejar el envío del formularioOferta
+ /** 
+ * Handles the submission of the offer form. Opens the modal with the current form data.
+ */
   const handleSubmitModal = (e: any) => {
     e.preventDefault();
     openFormularioOferta(datosModal);// Abre el modal con los datos actuales del formularioOferta
@@ -304,75 +319,58 @@ export default function Home() {
       maximo: '',
       minimo: '',
       conditions: '',
-      // otros campos según sea necesario
     });
     setIsFormVisible(false)
   };
 
-  // Función para abrir el offerCard
+ /** 
+ * Shows the offer form.
+ */
   const openForm = () => {
     setIsFormVisible(true);
   };
-
-  // Función para confirmar la acción del modal de confirmacion basándose en la criptomoneda seleccionada
+ 
+ /** 
+ * Confirms the action in the confirmation modal based on the selected cryptocurrency.
+ * 
+ * @async
+ */
   const handleConfirmModal = async () => {
-    setIsCharging(true);
-    try{
+    setIsLoading(true);
+    try {
       if (datosModal) {
-        if (datosModal.crypto === 'eth') { 
-            await handleCreateEscrow(datosModal.value, datosModal.price, true);       
+        if (datosModal.crypto === 'eth') {
+          await handleCreateEscrow(datosModal.value, datosModal.price, true);
         } else if (datosModal.crypto === 'usdt') {
-            // await createEscrow(datosModal.value, datosModal.price);
-            await handleCreateEscrow(datosModal.value, datosModal.price, false);     
+          await handleCreateEscrow(datosModal.value, datosModal.price, false);
         }
       }
-    }catch (error) {
-      console.error("Error al crear el escrow:", error);  
+    } catch (error) {
+      console.error("Error al crear el escrow:", error);
     } finally {
-      setIsCharging(false);
+      setIsLoading(false);
     }
-    setIsModalOpen(false);    
+    setIsModalOpen(false);
   };
-  // Función para abrir el modal y establecer los datos del formulario como su contenido
+  
+ /** 
+ * Opens the form modal with the provided data.
+ * 
+ * @param {any} data - The form data.
+ */
   const openFormularioOferta = (data: any) => {
     setDatosModal(data);
     setIsModalOpen(true);
   };
-  // Función para cerrar el modalResumen
+
+ /** 
+ * Closes the summary modal.
+ */
   const closeModal = () => {
     setIsModalOpen(false);
-    // setDatosModal(null);
   };
 
-  useEffect(() => {
-    setIsMounted(true);
-    // setBalanceOf(balanceOf?.data);
-  }, []);
-
-  useEffect(() => {
-    const initializeContract = async () => {
-      try {
-        if (typeof window.ethereum !== 'undefined' && address) {
-          const provider = new ethers.BrowserProvider(window.ethereum);
-          const signer = await provider.getSigner();
-          const newContract = new ethers.Contract(CONTRACT_ADDRESS, MoneybankABI, signer);
-          setContract(newContract);
-          const tokenContract = new ethers.Contract(USDTAddress, USDTABI, signer);
-          setTokenContract(tokenContract);
-          address ? setLoggedIn(true) : setLoggedIn(false);
-        }
-      } catch {
-        console.error("Error initializing contract");
-      }
-    };
-
-    if (address) {
-      initializeContract();
-    }
-  }, [address]);
-
   if (!isMounted) return null;
-
   const unloggedInView = (
     <div>
       <div className="logout-title-logo-container">
@@ -410,8 +408,6 @@ export default function Home() {
   return (
     <div className="main">{loggedIn ? loggedInView : unloggedInView}
       {loggedIn && (
-        // <link rel="icon" href="/favicon.ico" />
-        // <div className={styles.main}>
         <div className="text-container">
           <div>
             <div className="containerTitle">
@@ -423,8 +419,7 @@ export default function Home() {
                 </div>
                 <ConnectButton />
               </div>
-              {/* {isLoading && LoadingSpinner("Cargando datos...")} */}
-              {isCharging && LoadingSpinner("Cargando datos...")}
+              {isLoading && LoadingSpinner("Cargando datos...")}
               {/* {address && <p className="show-balance">Dirección del usuario: {truncateEthAddress(address)}</p>} */}
               <div className="balances-container">
                 {ethBalance && <p className="show-balance">Balance de USDT: {balanceOf.toString()}</p>}
@@ -453,9 +448,7 @@ export default function Home() {
                             key={offer.id}
                             offer={offer}
                             acceptEscrow={() => handleAcceptEscrow(offer.id, offer[3], true)}
-                            // acceptEscrowNativeCoin={() => handleAcceptEscrowNativeCoin(offer.id, offer[3], true)}
-                            // acceptEscrowNativeCoin={acceptEscrowNativeCoin}
-                            cancelEscrow={() => handleCancelEscrow(offer.id)} 
+                            cancelEscrow={() => handleCancelEscrow(offer.id)}
                             address={address}
                           />
                         ))
@@ -476,9 +469,7 @@ export default function Home() {
                             key={offer.id}
                             offer={offer}
                             acceptEscrow={() => handleAcceptEscrow(offer.id, offer[3], false)}
-                            // acceptEscrowNativeCoin={() => handleAcceptEscrowNativeCoin(offer.id, offer[3], false)}
-                            // acceptEscrowNativeCoin={acceptEscrowNativeCoin}
-                            cancelEscrow={() => handleCancelEscrow(offer.id)} 
+                            cancelEscrow={() => handleCancelEscrow(offer.id)}
                             address={address}
                           />
                         ))
@@ -552,22 +543,22 @@ export default function Home() {
                 <div className="containerReleases">
                 </div>
                 </div>  */}
-                  {/* <div className={styles.containerWithdraw}>
+              {/* <div className={styles.containerWithdraw}>
                 <form className="approveAddStable" onSubmit={handleSubmit}>
                       <input type="text" placeholder="Direccion EstableCoin"
                       value={stableAddress} onChange={(e) => setStableAddress(e.target.value)} />
                       <button type="submit">Añadir StableCoin</button>
                     </form> */}
-                  {/* <button className={styles.withdrawButton} onClick={withdrawFees}>
+              {/* <button className={styles.withdrawButton} onClick={withdrawFees}>
                     Retirar Fees USDT
                   </button>
                   <button className={styles.withdrawButton} onClick={withdrawFeesNativeCoin}>
                  
                     Retirar Fees ETH
                   </button> */}
-                  {/* </div>  */}
+              {/* </div>  */}
 
-                  {/* </div>
+              {/* </div>
                 )}
                 </div>
               ) : (

@@ -2,6 +2,14 @@ import Web3 from "web3";
 import { uiConsole } from './Utils';
 
 
+/**
+ * 
+ * @param {string} message - The message to be signed.
+ * @param {any} provider - The Web3 provider instance.
+ * @return {Promise<string>} The signed message.
+ * @throws Will throw an error if the provider is not initialized or if the signing process fails.
+ */
+
 export const signMessage = async (message: string, provider: any) => {
     if (!provider) {
       uiConsole("provider not initialized yet");

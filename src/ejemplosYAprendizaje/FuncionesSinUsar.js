@@ -1,3 +1,12 @@
+  // Estados TEMPORALMENTE en deshuso
+  // const [stableAddress, setStableAddress] = useState('');
+  // const [approveValue, setApproveValue] = useState('');
+  // const [refundNumber, setRefundNumber] = useState(0);
+  // const [refundNumberNativeC, setRefundNumberNativeC] = useState(0);
+  // const [orderId] = useState(0);
+  // const [allowance, setAllowance] = useState(0);
+  
+  
   //FUNCIONES SIN UTILIZAR ACTUALMENTE
   /// ================== Añadir Stable Coin ==================
   //Añadir una nueva moneda al contrato

@@ -37,6 +37,7 @@ type ModalResumenProps = {
   return (
     <div className="modal-overlay">
       <div className="modal-content">
+        <p>Confirma que quieres crear esta oferta</p>
         {/* <p>{datosModal.crypto === "usdt"? "USDT" : "ETH"}</p> */}
         <p>{isValidCrypto ? datosModal.crypto.toUpperCase() : "Criptomoneda no válida"}</p>
         <p>Cantidad disponible: {datosModal.value}</p>

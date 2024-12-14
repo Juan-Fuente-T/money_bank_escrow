@@ -11,7 +11,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 100;
   /* pointer-events: none;  */
 }
 
@@ -21,7 +21,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
   /* background-color: rgba(0, 0, 0, 0.5); 
-  z-index: 1000;
+  z-index: 100;
 } */
 
 /* Contenido del modal */
@@ -35,7 +35,7 @@
   width: 500px; /* Ancho fijo del modal */
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3); /* Sombra para darle profundidad */
   box-sizing: border-box; /* Incluye padding en el ancho total */
-  z-index: 1001; /* Asegura que el contenido del modal esté por encima del overlay */
+  z-index: 101; /* Asegura que el contenido del modal esté por encima del overlay */
   position: relative; /* Asegura que el modal se posicione sobre el overlay */
 }
 
