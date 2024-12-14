@@ -68,8 +68,8 @@ const FormularioOferta: React.FC<FormularioOfertaProps> = ({
   // const usdtPrecio = 1; //Precios simulados usados durante el desarrollo
   // const ethPrecio = 3333;
 
-  const ethPriceInUsdt = prices["eth"]?.precio / prices["usdt"]?.precio;
-  const usdtPriceInEth = prices["usdt"]?.precio / prices["eth"]?.precio;
+  const ethPriceInUsdt = prices["eth"]?.precio / prices["usdt"]?.precio || 1;
+  const usdtPriceInEth = prices["usdt"]?.precio / prices["eth"]?.precio || 1;
 
   // Valores iniciales para usdtValue y ethValue
   const initialUsdtValue = "";
@@ -90,7 +90,7 @@ const FormularioOferta: React.FC<FormularioOfertaProps> = ({
    * @param {string} event.target.value - Valor del campo de entrada.
    * @return {void}
    */
-  const handleInputChange = (event: { target: { name: any; value: any } }) => {
+  const handleInputChange = (event: { target: { name: string; value: string} }) => {
     const { name, value } = event.target;
 
     // Reemplaza comas por puntos
@@ -101,10 +101,12 @@ const FormularioOferta: React.FC<FormularioOfertaProps> = ({
       // Limpia el valor del campo correspondiente
       if (name === "usdt") {
         setUsdtValue(initialUsdtValue);
-        setEthValue(usdtValue); // Mantiene el valor de ETH igual
+        // setEthValue(usdtValue); // Mantiene el valor de ETH igual
+        setEthValue("");
       } else if (name === "eth") {
         setEthValue(initialEthValue);
-        setUsdtValue(ethValue); // Mantiene el valor de USDT igual
+        // setUsdtValue(ethValue); // Mantiene el valor de USDT igual
+        setUsdtValue("");
       }
       return; // Sale de la función si no es eth o usdt
     }
@@ -113,16 +115,16 @@ const FormularioOferta: React.FC<FormularioOfertaProps> = ({
       setUsdtValue(newValue);
       // Convierte USDT a ETH: Divide la cantidad de USDT por el precio de ETH en dólares
       const convertedEthValue = parseFloat(newValue) * usdtPriceInEth; // Ajusta los decimales a 18 para ETH
-      console.log("convertedEthValue", convertedEthValue.toFixed(18));
+      // console.log("convertedEthValue", convertedEthValue.toFixed(18));
       setEthValue(convertedEthValue.toFixed(18));
     } else if (name === "eth") {
       setEthValue(newValue);
       // Convierte ETH a USDT: Multiplica la cantidad de ETH por el precio de ETH en dólares
       const convertedUsdtValue = parseFloat(newValue) * ethPriceInUsdt; // Ajusta los decimales a 6 para USDT
-      console.log("convertedUsdtValue", parseFloat(newValue) * ethPriceInUsdt);
+      // console.log("convertedUsdtValue", parseFloat(newValue) * ethPriceInUsdt);
       setUsdtValue(convertedUsdtValue.toFixed(6));
     }
-    console.log("usdtValue", usdtValue, "ethValue", ethValue);
+    // console.log("usdtValue", usdtValue, "ethValue", ethValue);
   };
   /**
    * Cierra el formulario y reinicia los datos modales.

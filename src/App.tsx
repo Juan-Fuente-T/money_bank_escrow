@@ -5,12 +5,12 @@ import { MoneybankABI } from "./assets/abis/MoneybankABI";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Contract, ethers } from 'ethers';
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import  LoadingSpinner  from "./utils/LoadingSpinner";
+import LoadingSpinner from "./utils/LoadingSpinner";
+import { useAsyncTask } from "./hooks/useAsyncTask";
 
 import ModalResumen from './components/ModalResumen';
 import FormularioOferta from './components/FormularioOferta'
 import OfferCard from "./components/OfferCard";
-import { toast } from 'react-toastify';
 import { useAccount, useBalance } from 'wagmi'
 import { usePrices } from './hooks/usePrices';
 
@@ -42,6 +42,7 @@ export default function Home() {
   // const [allowance, setAllowance] = useState(0);
   
   // Estados para manejar el montado del componente, carga, modales, balances, direcciones, proveedores, contratos, etc.
+  const[isCharging, setIsCharging] = useState(false);
   const [isMounted, setIsMounted] = useState(false);// State variable to know if the component has been mounted yet or not
   // const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -69,7 +70,9 @@ export default function Home() {
   const { address: _address } = useAccount();
   const { data, isError } = useBalance({address: _address});
   const { fees, fetchFees } = useFees(contract);
- 
+  // const { runTask } = useAsyncTask();
+  
+  
   useEffect(() => {
     if (_address) {
       setAddress(_address);
@@ -108,37 +111,55 @@ export default function Home() {
   const ethPrecio = prices['eth']?.precio;
   const valorEthEnUsd = ethPrecio * usdtPrecio;
   const valorUsdEnEth = usdtPrecio / ethPrecio;
-  const { isLoading, createEscrow, cancelEscrow } = useEscrow(contract, tokenContract);
-  async function handleCreateEscrow(value: string, price: string, orderId: number) {
-    console.log("value: ", value, "price: ", price, "orderId: ", orderId);
-    await createEscrow(value, price);
-    toast("Se ha creado la oferta USDT exitosamente");
+  const { isLoading, createEscrow, cancelEscrow, acceptEscrow } = useEscrow(contract, tokenContract);
+  async function handleCreateEscrow(value: string, price: string, isEthOffer: boolean) {
+    setIsCharging(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await createEscrow(value, price, isEthOffer);
     fetchOffers();
     handleCloseForm();
+    setIsCharging(false);
   }
-  /**
-   * Función asíncrona para cancelar una oferta en la UI
-   * @param value - El valor de la oferta en USDT
+
+    /**
+     * Función asíncrona para cancelar una oferta en la UI
+     * @param value - El valor de la oferta en USDT
    * @param id - El ID de la oferta a cancelar
    */
   async function handleCancelEscrow(offerId: number) {
-    await cancelEscrow (offerId);
-    toast("Se ha creado la oferta USDT exitosamente");
+      setIsCharging(true);
+      try {
+        await cancelEscrow(offerId);
+        fetchOffers();
+        handleCloseForm();
+      } catch (error) {
+        console.error("Error al cancelar el escrow:", error);
+      }finally {
+        setIsCharging(false);
+      }
+  }
+  
+  async function handleAcceptEscrow(offerId: number, cost: number, isEthOffer: boolean) {
+    setIsCharging(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await acceptEscrow(offerId, cost, isEthOffer)
     fetchOffers();
     handleCloseForm();
+    setIsCharging(false);
   }
+
   // Función asíncrona para conectar la billetera del usuario con la aplicación
   // const connectWallet = async () => {
-  //   if (window.ethereum) {
-  //     try {
-  //       // Solicitar al usuario que conecte su billetera
+    //   if (window.ethereum) {
+      //     try {
+        //       // Solicitar al usuario que conecte su billetera
   //       const provider = new ethers.BrowserProvider(window.ethereum);
   //       console.log("provider ", provider);
-
+  
   //       // Obtiene el signer del proveedor para firmar transacciones
   //       const signer = await provider.getSigner();
   //       console.log("signer", signer);
-
+  
   //       // Obtiene la dirección del usuario conectado
   //       const userAddress = await signer.getAddress();
   //       setAddress(userAddress);
@@ -148,14 +169,14 @@ export default function Home() {
   //       userAddress ? setLoggedIn(true) : setLoggedIn(false);
   //       // Verifica si tanto el proveedor como el signer están inicializados correctamente
   //       if (provider && signer) {
-  //         // Inicializa el contrato de Moneybank utilizando la dirección y ABI proporcionadas
+    //         // Inicializa el contrato de Moneybank utilizando la dirección y ABI proporcionadas
   //         const moneybankContract = new Contract(CONTRACT_ADDRESS, MoneybankABI, signer);
   //         if (!moneybankContract) {
-  //           console.error("Moneybank contract initialization failed");
-  //         } else {
-  //           console.log("Moneybank Contract initialized:", moneybankContract);
-  //         }
-  //         console.log("Contract:", moneybankContract);
+    //           console.error("Moneybank contract initialization failed");
+    //         } else {
+      //           console.log("Moneybank Contract initialized:", moneybankContract);
+      //         }
+      //         console.log("Contract:", moneybankContract);
   //         setContract(moneybankContract);
   //         // console.log("Contract:", moneybankContract);
   //         console.log("userAddress", userAddress);
@@ -179,471 +200,12 @@ export default function Home() {
   //   }
   // };
 
-  // Función asíncrona para crear un escrow con tokens USDT
-  // async function createEscrow(value: string, price: string) {
-  //   setIsLoading(true);
-  //   // Codificacion de firmas para llamadas a funciones, A IMPLEMENTAR
-  //   // const message = "Hola, Moneybank pagará el gas por ti";
-  //   // const hash = hashMessage(message);
-  //   // console.log("HASH", hash);
-  //   // const signature = await signMessage(message, provider);
-  //   // console.log("SIGNATURE", signature);
-
-  //   // Verifica si el contrato está inicializado
-  //   if (!contract) {
-  //     throw new Error("Contract not found");
-  //   }
-
-  //   try {
-  //     // Convierte los valores entrantes como strings para evitar problemas de precisión
-  //     const valueParsed = parseFloat(value);
-  //     const priceParsed = parseFloat(price);
-
-  //     // Validar que tanto el valor como el precio sean mayores que cero
-  //     if (valueParsed <= 0 || priceParsed <= 0) {
-  //       throw new Error("Valor o precio inválido");
-  //     }
-  //     // Valores de ejemplo
-  //     // const valueFixed = ethers.FixedNumber.from(0.0002);
-  //     // const pricePerEth = ethers.FixedNumber.from(2000.5);
-
-  //     // Crear FixedNumber para USDT (6 decimales)
-  //     const usdtAmount = ethers.FixedNumber.fromValue(
-  //       ethers.parseUnits(valueParsed.toString(), 6),
-  //       6
-  //     );
-
-  //     // Crear FixedNumber para el precio de ETH (18 decimales)
-  //     const ethPrice = ethers.FixedNumber.fromValue(
-  //       ethers.parseUnits(priceParsed.toString(), 18),
-  //       18
-  //     );
-  //     // Calcular cuánto ETH equivale a 1 USDT
-  //     const ethAmount = usdtAmount.mulUnsafe(ethPrice);
-
-  //     // Convertir los valores a BigNumber para usar en las transacciones
-  //     const usdtAmountBN = ethers.parseUnits(value, 6);
-  //     const ethAmountBN = ethers.parseEther(ethAmount.toString());
-
-  //     //Realizar el approve previo para permitir el envio de tokens
-  //     // const addApproveTokenTx = await tokenContract.approve(CONTRACT_ADDRESS, valueInUSDTWei + fee, {
-  //     const addApproveTokenTx = await tokenContract?.approve(CONTRACT_ADDRESS, usdtAmountBN, {
-  //       gasLimit: 5000000,
-  //     });
-  //     await addApproveTokenTx.wait();
-
-  //     //Creación del escrow de usdt
-  //     // const receipt = await waitForTransaction(addEscrowTokenTx);
-  //     const addEscrowTokenTx = await contract.createEscrowToken(usdtAmountBN, ethAmountBN, USDTAddress, {
-  //       gasLimit: 5000000,
-  //     });
-  //     await addEscrowTokenTx.wait();
-  //     toast("Se ha creado la oferta USDT exitosamente");
-  //     fetchOffers();
-  //     handleCloseForm();
-  //   } catch (error) {
-  //     console.error("Error en createEscrow:", error);
-  //     toast.error("No se ha podido crear la oferta USDT");
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // }
-
-  // Función asíncrona para crear un escrow con Ether nativo
-  async function createEscrowNativeCoin(value: string, price: string) {
-    // setIsLoading(true);
-    // Codificacion de firmas para llamadas a funciones, A IMPLEMENTAR
-    // const message = "Hola, Moneybank pagará el gas por ti";
-    // const hash = hashMessage(message);
-    // console.log("HASH", hash);
-    // const signature = await signMessage(message, provider);
-    // console.log("SIGNATURE", signature);
-
-    // Verifica si el contrato está inicializado
-    if (!contract) {
-      throw new Error("Contract not found");
-    }
-    try {
-      //Realizar cálculos necesarios para convertir los valores a unidades adecuadas para la transacción
-      const ethAmount = parseFloat(value);
-      const usdtPricePerEth = parseFloat(price);
-
-      if (ethAmount <= 0 || usdtPricePerEth <= 0) {
-        throw new Error("Cantidad de ETH o precio en USDT inválido");
-      }
-      // Crear FixedNumber para ETH (18 decimales)
-      const ethAmountFixed = ethers.FixedNumber.fromValue(
-        ethers.parseEther(value),
-        18
-      );
-      // Crear FixedNumber para el precio USDT/ETH (6 decimales para USDT)
-      const usdtPriceFixed = ethers.FixedNumber.fromValue(
-        ethers.parseUnits(price, 6),
-        6
-      );
-      // Calcular el total en USDT
-      const totalUsdtFixed = ethAmountFixed.mulUnsafe(usdtPriceFixed);
-
-      // Redondear a 6 decimales para USDT
-      const totalUsdtRounded = parseFloat(totalUsdtFixed.toString()).toFixed(6);
-      // Convertir a BigNumber para usar en las transacciones
-      const ethAmountBN = ethers.parseEther(value);
-      const totalUsdtBN = ethers.parseUnits(totalUsdtRounded.toString(), 6);
-      // Realiza la transacción para crear el escrow con Ether nativo
-      const addEscrowNativeTx = await contract.createEscrowNativeCoin(
-        ethAmountBN, 
-        totalUsdtBN, 
-        USDTAddress, 
-        {
-          gasLimit: 5000000,
-          value: ethAmountBN 
-        }
-      );
-      await addEscrowNativeTx.wait();
-
-      toast("Se ha creado la oferta ETH exitosamente");
-      fetchOffers();
-      handleCloseForm();
-    } catch (error) {
-      console.error(error);
-      toast.error("No se ha podido crear la oferta ETH");
-    } finally {
-      // setIsLoading(false);
-    }
-  }
-
-  // Función asíncrona para aceptar un escrow con tokens USDT
-  async function acceptEscrowToken(_orderId: number, cost: number) {
-    // setIsLoading(true);
-    // Codificacion de firmas para llamadas a funciones, A IMPLEMENTAR
-    // const message = "Hola, Moneybank pagará el gas por ti";
-    // //const hash = hashMessage(message);
-    // console.log("HASH", hash);
-    // //const signature = await signMessage(message, provider);
-    // console.log("SIGNATURE", signature);
-
-    // Verifica si el contrato está inicializado
-    if (!contract) {
-      throw new Error("Contract not found");
-    }
-    try {
-      // Realiza la transacción para aceptar el escrow con tokens USDT
-      // const receipt = await waitForTransaction(addEscrowTokenTx);
-      const acceptEscrowTokenTx = await contract.acceptEscrowToken(parseInt(_orderId.toString()), {
-        gasLimit: 5000000,
-        value: cost
-      });
-      await acceptEscrowTokenTx.wait();
-      toast("Se ha aceptado la oferta USDT. Se han trasferido los fondos");
-      fetchOffers();
-    } catch (error) {
-      console.error(error);
-      toast.error("No se ha podido aceptar la oferta USDT");
-    } finally {
-      // setIsLoading(false);
-      //NECESARIO CERRAR MODAL CONFIRMACION??
-    }
-  }
-  // Función asíncrona para aceptar un escrow con Ether nativo
-  async function acceptEscrowNativeCoin(_orderId: number, cost: number) {
-    // setIsLoading(true);
-    //Código para generar un mensaje, hash y firma para autenticación, IMPLEMENTAR
-    // const message = "Hola, Moneybank pagará el gas por ti";
-    // const hash = hashMessage(message);
-    // console.log("HASH", hash);
-    // const signature = await signMessage(message, provider);
-    // console.log("SIGNATURE", signature);
-
-    // Verifica si el contrato está inicializado
-    if (!contract) {
-      throw new Error("Contract not found");
-    }
-    try {
-      // Aprobar el gasto de tokens USDT por parte del contrato antes de realizar la transacción
-      // const addApproveTokenTx = await tokenContract.approve(CONTRACT_ADDRESS, valueInUSDTWei + fee, {
-      const addApproveTokenTx = await tokenContract?.approve(CONTRACT_ADDRESS, cost, {
-        gasLimit: 5000000,
-      });
-      await addApproveTokenTx.wait();
-
-      //Aceptar el escrow con Ether nativo utilizando hash y firma
-      // const addEscrowTokenTx = await contract.acceptEscrowNativeCoin(address, hash, signature, parseInt(_orderId.toString()) {
-      const acceptEscrowNativeTx = await contract.acceptEscrowNativeCoin(_orderId, {
-        gasLimit: 5000000
-      });
-      await acceptEscrowNativeTx.wait();
-      // const receipt = await waitForTransaction(addEscrowTokenTx);
-      // window.alert("Se ha aceptado la oferta ETH. Se han trasferido los fondos")
-      toast("Se ha aceptado la oferta ETH. Se han trasferido los fondos");
-      fetchOffers();
-    } catch (error) {
-      console.error(error);
-      toast.error("No se ha podido aceptar la oferta ETH");
-    } finally {
-      // setIsLoading(false);
-
-    }
-  }
-  /// ================== Cancelar oferta  ==================
-  // Función asíncrona para aceptar un escrow con Ether nativo
-  // async function cancelEscrow(orderId: number, value: number) {
-  //   setIsLoading(true);
-  //   // Codificacion de firmas para llamadas a funciones, A IMPLEMENTAR
-  //   // Codificacion de firmas para llamadas a funciones, A IMPLEMENTAR
-  //   // const message = "Hola, Moneybank pagará el gas por ti";
-  //   // const hash = hashMessage(message);
-  //   // console.log("HASH", hash);
-  //   // const signature = await signMessage(message, provider);
-  //   // console.log("SIGNATURE", signature);
-
-  //   // Verifica si el contrato está inicializado
-  //   if (!contract) {
-  //     throw new Error("Contract not found");
-  //   }
-
-  //   try {
-  //     // Realizar transacción para cancelar un escrow existente
-  //     const cancelTx = await contract?.cancelEscrow(orderId, {
-  //       gasLimit: 5000000,
-  //     });
-  //     await cancelTx.wait();
-  //     toast("Se ha cancelado la oferta con éxito");
-  //     fetchOffers();
-  //   } catch (error) {
-  //     console.error(error);
-  //     toast.error("No se ha podido cancelar la oferta");
-  //   }
-  //   setIsLoading(false);
-  // }
-
-
-  //FUNCIONES SIN UTILIZAR ACTUALMENTE
-  /// ================== Añadir Stable Coin ==================
-  //Añadir una nueva moneda al contrato
-  // async function addStableAddress(stableAddress: string) {
-  //   setIsLoading(true);
-  // Codificacion de firmas para llamadas a funciones, A IMPLEMENTAR
-  //   // const message = "Hola, Moneybank pagará el gas por ti";
-  //   // const hash = hashMessage(message);
-  //   // console.log("HASH", hash);
-  //   // const signature = await signMessage(message, provider);
-  //   // console.log("SIGNATURE", signature);
-  //   if (!contract) {
-  //     throw new Error("Contract not found");
-  //   }
-  //   try {
-  //     // const addEscrowTokenTx = await contract.addStablesAddresses(address, hash, signature, stableAddress, { {
-  //     const addStableAddressTx = await contract.addStablesAddresses( stableAddress, {
-  //         gasLimit: 5000000,
-  //       });
-  //     await addStableAddressTx.wait();
-  //     // const receipt = await waitForTransaction(addEscrowTokenTx);
-  //     toast("Se ha añadido la crypto currency exitosamente");
-
-  //     console.log('Transacción addStable confirmada:', addStableAddressTx.hash);
-  //   } catch (error) {
-  //     console.error(error);
-  //     // window.alert(error);
-  //     toast.error("No se ha podido añadir la crypto currency");
-  //   }
-  //  setIsLoading(false);
-  // }
-
-
-  /// ================== Escrow  Value  ==================
-  //Obtener el valor de un determinado escrow
-  // async function getEscrowValue(escrowId: number) {
-  //   try {
-  //     const escrowValue = await contract?.getValue(escrowId);
-  //     console.log("escrowValue",escrowValue); // Imprime la versión obtenida del contrato
-  //   } catch (error) {
-  //     console.error("Error al obtener la el valor de la oferta:", error);
-  //   }
-  // }
-
-
-  /// ================== Escrow  State  ==================
-  //Obtener el estado de un determinado escrow
-  // Fetch the state of Escrow
-  // async function getEscrowState(escrowId: number) {
-  //   try {
-  //     const escrowState= await contract?.getState(escrowId);
-  //     console.log(escrowState); 
-  //   } catch (error) {
-  //     console.error("Error al obtener la el estado de la oferta:", error);
-  //   }
-  // }
-
-
-  /// ================== Get OrderID  ==================
-  //Obtener el actual numero de id para el proximo escrow
-  //   async function getOrderId() {
-  //     try {
-  //         const orderId = await contract?.orderId();
-  //         console.log("orderId", orderId); 
-  //         setOrderId(orderId);
-  //         return orderId;
-  //     } catch (error) {
-  //         console.error("Error al obtener el numero de oferta:", error);
-  //     }
-  // }
-
-
-  /// ================== Get Escrow ==================
-  // // Llamada para obtener un escrow con el ID solicitado
-  // Fetch the info of Escrow
-  // async function getEscrow(escrowId: number) {
-  //   try {
-  //       const dataEscrow = await contract?.getEscrow(escrowId);
-  //      // setDataEscrow(dataEscrow);
-  //       return dataEscrow;
-  //   } catch (error) {
-  //       console.error("Error al obtener el escrow:", error);
-  //   }
-  // }
-
-  /// ================== Get Last Escrow ==================
-  // // Llamada para obtener el último escrow basado en el ID
-
-  // const fetchLastEscrow = async () => {
-  //   if (!contract) {
-  //     console.error("Contract is not initialized");
-  //     return;
-  //   }
-  //   try {
-  //     const _orderId = await contract?.orderId();
-  //     const result: any = await contract?.getLastEscrow(parseInt(_orderId.toString()) - 1);
-  //     // if (result && result.length === 3) {
-  //     if (result) {
-  //       setLastEscrow(result);
-  //       const seller = result.seller;
-  //       const type = result.escrowNative;
-  //       const value = result.value;
-  //       const cost = result.cost;
-  //       console.log("Seller:", seller);
-  //       console.log("Value:", value);
-  //       console.log("Cost:", cost);
-
-  //     } else {
-  //     // const dataLastEscrow=  getLastEscrow(parseInt(_orderId.toString())  -1);
-  //       console.error("No se encontrado datos para la oferta:", orderId);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error al obtener datos de la oferta", error);
-  //   }
-  // };
-  // fetchLastEscrow();
-
-
-  /// ================== Allowance en USDT  ==================
-  // Obtener el allowance de tokens USDT permitido por el usuario al contrato
-  //CUIDADO; SE NECESITA INSTANCIAR USDT Y LLAMAR A tokenContract
-  // const getAllowance = useCallback(async () => {
-  //   try {
-  //     const allowance = await tokenContract?.allowance(address, CONTRACT_ADDRESS);
-  //     setAllowance(allowance);
-  //   } catch (error) {
-  //     console.error("Error al obtener el allowance de oferta:", error);
-  //   }
-  // }, [address, tokenContract]);
-
-
-  /// ================== Approve del user a Moneybank  ==================
-  // async function approve() {
-  //   setIsLoading(true);
-  // Codificacion de firmas para llamadas a funciones, A IMPLEMENTAR
-  //   // const message = "Hola, Moneybank pagará el gas por ti";
-  //   // const hash = hashMessage(message);
-  //   // console.log("HASH", hash);
-  //   // const signature = await signMessage(message, provider);
-  //   // console.log("SIGNATURE", signature);
-  //   if (!contract) {
-  //     throw new Error("Contract not found");
-  //   }
-
-  //   // const amountFeeSeller = ((valueEthBig * (await getFeeSeller() * 10 ** 18)) /
-  //   // // (100 * 10 ** 6)) / 1000; DECIMALES, 6 USDT
-  //   // (100 * 10 ** 18)) / 1000;
-
-  //   const amountApprove = convertToBigNumber(parseFloat(approveValue), 6);
-
-  //   try {
-  //     // const addEscrowTokenTx = await tokenContract?.approve (address, hash, signature, CONTRACT_ADDRESS, amountApprove, {
-  //     const approveTx = await tokenContract?.approve (CONTRACT_ADDRESS, amountApprove, {
-  //         gasLimit: 5000000,
-  //       });
-  //     await approveTx.wait();
-  //     // const receipt = await waitForTransaction(addEscrowTokenTx);
-  //     window.alert("Se ha aprobado con éxito")
-  //     toast("Se ha aprobado con éxito");
-  //     // await waitForTransaction(tx);
-  //     console.log("Hash del approve", approveTx.hash);
-  //     console.log('Transacción approve confirmada:', approveTx);
-
-  //   } catch (error) {
-  //     console.error(error);
-  //     // window.alert(error);
-  //     toast.error("No se ha podido aprobar");
-  //   }
-  //  setIsLoading(false);
-  // } 
-  // /// ================== Transfer  Token  ==================
-  // const transfer = async (event: { preventDefault: () => void; }) => {
-  //   event.preventDefault();
-  //   setIsLoading(true);
-  // Codificacion de firmas para llamadas a funciones, A IMPLEMENTAR
-  //   // const message = "Hola, Moneybank pagará el gas por ti";
-  //   // const hash = hashMessage(message);
-  //   // console.log("HASH", hash);
-  //   // const signature = await signMessage(message, provider);
-  //   // console.log("SIGNATURE", signature);
-  //   if (!contract) {
-  //     throw new Error("Contract not found");
-  //   }
-
-  //   // const amountFeeSeller = ((valueEthBig * (await getFeeSeller() * 10 ** 18)) /
-  //   // // (100 * 10 ** 6)) / 1000; DECIMALES, 6 USDT
-  //   // (100 * 10 ** 18)) / 1000;
-
-  //   const amountValue = ethers.parseUnits(valueTransfer.toString(), 6);
-  //   try {
-  //     // const addEscrowTokenTx = await tokenContract?.transfer(address, hash, signature, addressTransfer, amountValue, {
-  //     const transferTx = await tokenContract?.transfer(addressTransfer, amountValue, {
-  //         gasLimit: 5000000,
-  //       });
-  //     await transferTx.wait();
-  //     // const receipt = await waitForTransaction(addEscrowTokenTx);
-  //     window.alert("Se ha transferido con éxito")
-  //     toast("Se ha transferido con éxito");
-  //     // await waitForTransaction(tx);
-  //     console.log("Hash del transfer", transferTx.hash);
-  //     console.log('Transacción transfer confirmada:', transferTx);
-
-  //   } catch (error) {
-  //     console.error(error);
-  //     // window.alert(error);
-  //     toast.error("No se ha podido transferir");
-  //   }
-  //  setIsLoading(false);
-  // } 
-
-  // Función para obtener las fees del vendedor y comprador
-  // const fetchFees = useCallback(async (): Promise<void> => {
-  //   try {
-  //     let _feeSeller = await getFeeSeller();
-  //     setFeeSeller(_feeSeller || 0);
-
-  //     let _feeBuyer = await getFeeBuyer();
-  //     setFeeBuyer(_feeBuyer || 0);
-  //   } catch (error) {
-  //     console.error("Error al obtener las fees:", error);
-  //   }
-  // }, [getFeeBuyer, getFeeSeller]);
-
+  
   // Función para obtener las ofertas disponibles
   const fetchOffers = useCallback(async () => {
     if (!contract) return;
-
+    setIsCharging(true);
+    
     // setIsLoading(true);
     try {
       const orderId = await contract.orderId();
@@ -673,55 +235,19 @@ export default function Home() {
       setBalanceOf(balance);
       setNativeOffers(fetchedNativeOffers);
       setUsdtOffers(fetchedUsdtOffers);
-
+      
     } catch (error) {
       console.error("Error al obtener ofertas:", error);
     } finally {
+      setIsCharging(false);
       // setIsLoading(false);
     }
   }, [contract, address, tokenContract]);
   // const refreshInterval = 60000; // 1 minuto en milisegundos
   // const refreshInterval = 5000; // 1 minuto en milisegundos
 
-  // Función para obtener los precios de las criptomonedas 
-  // const fetchPrices = useCallback(async () => { //DESACTIVADA LA LLAMADA A LA API DURANTE EL DESARROLLO
-  //   const currentTime = Date.now();
-  //   const timeSinceLastCall = currentTime - lastCallTime;
 
-  //   // Limita las llamadas a la api a una vez cada 60 segundos
-  //   // Realiza la llamada si ha pasado suficiente tiempo
-  //   if (lastCallTime === 0 || timeSinceLastCall >= refreshInterval) {
-  //   try {
-  //     // let prices = await coinGeckoGetPricesKV({ requestedCoins: ['eth', 'usdt'] });
-  //     //DESACTIVADA LA LLAMADA A LA API DURANTE EL DESARROLLO
-  //     let prices = {
-  //       eth: { precio: 2626.5, nombre: "Ethereum" },
-  //       usdt: { precio: 1.01, nombre: "Tether" }
-  //     };
-  //     console.log("PRICES", prices);
-  //     setPrices(prices);
-  //     setLastCallTime(currentTime); // Se actualiza el tiempo de la última llamada
-  //     console.log("PRICES", prices);
-  //     console.log(prices['eth'].precio); // Precio de ETH
-  //     console.log(prices['usdt'].precio); // Precio de USDT
-  //   } catch (error) {
-  //     console.error("Error fetching prices:", error);
-  //   }
-  //   } else {
-  //     console.log("Esperando...", currentTime - lastCallTime, "milisegundos desde la última llamada.");
-  //   }
-  //   }, [lastCallTime]); 
 
-  // // Llama a fetchPrices inmediatamente al montar el componente
-  // useEffect(() => {
-  //   fetchPrices(); // Llama a fetchPrices cuando se monta el componente
-
-  //   // Establece un intervalo para llamar a fetchPrices cada cierto tiempo
-  //   const intervalId = setInterval(fetchPrices, refreshInterval);
-
-  //   // Limpia el intervalo cuando el componente se desmonta
-  //   return () => clearInterval(intervalId);
-  // }, [fetchPrices]);
 
 
 
@@ -790,15 +316,22 @@ export default function Home() {
 
   // Función para confirmar la acción del modal de confirmacion basándose en la criptomoneda seleccionada
   const handleConfirmModal = async () => {
-    if (datosModal) {
-      if (datosModal.crypto === 'eth') {
-        await createEscrowNativeCoin(datosModal.value, datosModal.price);
-      } else if (datosModal.crypto === 'usdt') {
-        // await createEscrow(datosModal.value, datosModal.price);
-        await handleCreateEscrow(datosModal.value, datosModal.price, 0);
+    setIsCharging(true);
+    try{
+      if (datosModal) {
+        if (datosModal.crypto === 'eth') { 
+            await handleCreateEscrow(datosModal.value, datosModal.price, true);       
+        } else if (datosModal.crypto === 'usdt') {
+            // await createEscrow(datosModal.value, datosModal.price);
+            await handleCreateEscrow(datosModal.value, datosModal.price, false);     
+        }
       }
-      setIsModalOpen(false);
+    }catch (error) {
+      console.error("Error al crear el escrow:", error);  
+    } finally {
+      setIsCharging(false);
     }
+    setIsModalOpen(false);    
   };
   // Función para abrir el modal y establecer los datos del formulario como su contenido
   const openFormularioOferta = (data: any) => {
@@ -874,7 +407,6 @@ export default function Home() {
       {/* </div> */}
     </>
   );
-
   return (
     <div className="main">{loggedIn ? loggedInView : unloggedInView}
       {loggedIn && (
@@ -891,7 +423,8 @@ export default function Home() {
                 </div>
                 <ConnectButton />
               </div>
-              {isLoading && LoadingSpinner("Cargando datos...")}
+              {/* {isLoading && LoadingSpinner("Cargando datos...")} */}
+              {isCharging && LoadingSpinner("Cargando datos...")}
               {/* {address && <p className="show-balance">Dirección del usuario: {truncateEthAddress(address)}</p>} */}
               <div className="balances-container">
                 {ethBalance && <p className="show-balance">Balance de USDT: {balanceOf.toString()}</p>}
@@ -919,8 +452,9 @@ export default function Home() {
                           <OfferCard
                             key={offer.id}
                             offer={offer}
-                            acceptEscrowToken={acceptEscrowToken}
-                            acceptEscrowNativeCoin={acceptEscrowNativeCoin}
+                            acceptEscrow={() => handleAcceptEscrow(offer.id, offer[3], true)}
+                            // acceptEscrowNativeCoin={() => handleAcceptEscrowNativeCoin(offer.id, offer[3], true)}
+                            // acceptEscrowNativeCoin={acceptEscrowNativeCoin}
                             cancelEscrow={() => handleCancelEscrow(offer.id)} 
                             address={address}
                           />
@@ -941,8 +475,9 @@ export default function Home() {
                           <OfferCard
                             key={offer.id}
                             offer={offer}
-                            acceptEscrowToken={acceptEscrowToken}
-                            acceptEscrowNativeCoin={acceptEscrowNativeCoin}
+                            acceptEscrow={() => handleAcceptEscrow(offer.id, offer[3], false)}
+                            // acceptEscrowNativeCoin={() => handleAcceptEscrowNativeCoin(offer.id, offer[3], false)}
+                            // acceptEscrowNativeCoin={acceptEscrowNativeCoin}
                             cancelEscrow={() => handleCancelEscrow(offer.id)} 
                             address={address}
                           />
