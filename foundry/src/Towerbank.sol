@@ -1,6 +1,6 @@
 
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.8;
+pragma solidity 0.8.24;
 import "forge-std/console.sol";
 // import {console2} from "forge-std/Test.sol";
 // import {console} from "forge-std/console.sol";
@@ -111,7 +111,7 @@ contract Towerbank is ReentrancyGuard, Ownable {
 * - `_feeSeller` must be between 0 and 1% (inclusive).
 */
     function setFeeSeller(uint256 _feeSeller) external onlyOwner {
-        if(_feeSeller < 0 || _feeSeller > (1 * 1000)){
+        if(_feeSeller < 0 && _feeSeller > (1 * 1000)){
             revert FeeCanBeFrom0to1Percent();
         }
         feeSeller = _feeSeller;
@@ -124,7 +124,7 @@ contract Towerbank is ReentrancyGuard, Ownable {
      * - `_feeBuyer` must be between 0 and 1% (inclusive).
      */
     function setFeeBuyer(uint256 _feeBuyer) external onlyOwner {
-        if(_feeBuyer < 0 || _feeBuyer > (1 * 1000)){
+        if(_feeBuyer < 0 && _feeBuyer > (1 * 1000)){
             revert FeeCanBeFrom0to1Percent();
         }
     

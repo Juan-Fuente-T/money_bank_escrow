@@ -26,10 +26,14 @@ interface CoinData {
     current_price: number;
     name: string;
 }
-
+/**
+ * Function to retrieve a list of coins and their prices from CoinGecko API.
+ *
+ * @return {Promise<Array<{ name: string; symbol: string; price: number }>>} 
+ *      A promise that resolves to an array of objects with the name, symbol, and price of each coin.
+ */
 export async function coinGeckoGetPricesList(): Promise<Array<{ name: string; symbol: string; price: number }>> {
     try {
-        // Asumiendo que 'url' y 'params' están definidos en otro lugar de tu código
         const { data }: AxiosResponse<CoinData[]> = await axios.get(url, { params });
 
         const result = data.map((coin: CoinData) => ({
@@ -47,7 +51,12 @@ export async function coinGeckoGetPricesList(): Promise<Array<{ name: string; sy
 
 
 
-// Función principal
+/**
+ * Fetches the prices of specific cryptocurrencies from CoinGecko API.
+ *
+ * @param {RequestedCoinsParams} params - An object containing the list of cryptocurrency symbols to fetch.
+ * @return {Promise<{ [key: string]: { precio: number; nombre: string } }>} A promise that resolves to an object with the requested cryptocurrency prices.
+ */
 export async function coinGeckoGetPricesKV({ requestedCoins }: RequestedCoinsParams): Promise<{ [key: string]: { precio: number; nombre: string } }> {
     try {
         // Asumiendo que 'url' y 'params' están definidos en otro lugar de tu código

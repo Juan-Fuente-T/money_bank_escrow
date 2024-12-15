@@ -287,6 +287,15 @@ antiguo amarillo/verdoso hover: #d1e510;
   background-color: #2d5fbf;
   border-radius: 8px; */
 }
+.app-offers-map {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  background-color: #2d5fbf;
+  border-radius: 8px;
+}
 .app-offers-eth,
 .app-offers-token {
   display: flex;

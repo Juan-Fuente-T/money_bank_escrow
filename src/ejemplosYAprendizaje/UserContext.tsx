@@ -1,3 +1,40 @@
+//Context que PRETENDIA CORREGIR PROBLEMAS CON EL ESTADO DE ISLOADING
+// File: src/context/LoadingContext.tsx
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+
+interface LoadingContextValue {
+  isLoading: boolean;
+  setIsLoading: (loading: boolean) => void;
+}
+
+interface LoadingProviderProps {
+  children: ReactNode;
+}
+
+const LoadingContext = createContext<LoadingContextValue | undefined>(undefined);
+
+export const LoadingProvider: React.FC<LoadingProviderProps> = ({ children }) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  return (
+    <LoadingContext.Provider value={{ isLoading, setIsLoading }}>
+      {children}
+    </LoadingContext.Provider>
+  );
+};
+
+// Custom hook to use the Loading context
+export const useLoading = (): LoadingContextValue => {
+  const context = useContext(LoadingContext);
+  if (!context) {
+    throw new Error("useLoading must be used within a LoadingProvider");
+  }
+  return context;
+};
+
+
+
+//ANTIGUO CONTEXT PARA MANEJAR el ownershipId de unos articulos
 // // src/contexts/UserContext.tsx
 // import React, { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction } from 'react';
 
