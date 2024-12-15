@@ -1,0 +1,76 @@
+Instalacion de foundry: (usando wsl o git bash)
+-curl -L https://foundry.paradigm.xyz | bash
+-foundryup
+
+Para moverse por ubicaciones con wsl con git bush es como en powershell) usar el comando de este estilo: cd /mnt/c/Users/Juan/Desktop/Mis_proyectos/Proyectos_variados/prueba_foundry
+
+Una vez instalado para crear un nuevo proyecto basta con ejecutar el comando forge initnombreDelProyecto
+A la hora de crearlo ya crea la carpeta, es mejor estar colocado en la carpeta exterior, por ejemplo mis-proyectos.
+
+Posiblemente la terminal de WSL pida autenticacion con Git, se necesitaran estos comandos:
+
+git config --global user.email "jfuentet@gmail.com"
+git config --global user.name "Juan-Fuente-T"
+
+Para instalar contratos, como los de openzeppelin o solmate: 
+Posiblemente de problemas con git, hacer lo con un commit con lo siguiente en wsl:
+-git status
+-git add .
+-git commit -m "Mensaje de commit"
+-forge install transmissions11/solmate.
+
+Otra opcion es no hacer el commit y directamente usar ese comando forzando forge install --no-commit transmissions11/solmate
+
+DEPLOY: el comando forge script ejecuta el archivos que hay en la carpeta de scripts, con el nombre del contrato, la rpcurl, la private key la apikey d everificacionel comando total seria: 
+
+forge script script/Staker.s.sol:StakerDeploy --rpc-url loQueSeaLoQueSea --private-key loQueSeaLoQueSea --verify --etherscan-api-key loQueSeaLoQueSea -vvv  
+
+Los valores irian sin comillas ni nada. Tiene que ser a traves de git bush o WSL, con la terminal de vscode no funciona. 
+Resultado de un deploy exitoso: 
+------------------------####################----------------------------
+
+ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.
+##
+Start verification for (2) contracts
+Start verifying contract `0xC3d5C0F19Ebd94a84ed133Dc098c63F6b216EFbE` deployed on arbitrum-sepolia
+
+Submitting verification for [src/ExampleExternalContract.sol:ExampleExternalContract] 0xC3d5C0F19Ebd94a84ed133Dc098c63F6b216EFbE.
+Submitted contract for verification:
+        Response: `OK`
+        GUID: `28awinfivcbt2b2bwkxejnlbmbgn72sui7nh2tnzrspgm5mb1g`
+        URL: https://sepolia.arbiscan.io/address/0xc3d5c0f19ebd94a84ed133dc098c63f6b216efbe
+Contract verification status:
+Response: `NOTOK`
+Details: `Pending in queue`
+Contract verification status:
+Response: `OK`
+Details: `Pass - Verified`
+Contract successfully verified
+Start verifying contract `0x8e26d5Ae99939e025b587bf920A35e0f66FF0704` deployed on arbitrum-sepolia
+
+Submitting verification for [src/Staker.sol:Staker] 0x8e26d5Ae99939e025b587bf920A35e0f66FF0704.
+Submitted contract for verification:
+        Response: `OK`
+        GUID: `hecavfmzahyscwjhaumk93nxnsz6ehfgmrkeh8c9m3jf2ygjxf`
+        URL: https://sepolia.arbiscan.io/address/0x8e26d5ae99939e025b587bf920a35e0f66ff0704
+Contract verification status:
+Response: `NOTOK`
+Details: `Pending in queue`
+Contract verification status:
+Response: `OK`
+Details: `Pass - Verified`
+Contract successfully verified
+All (2) contracts were verified!
+
+Transactions saved to: /mnt/c/Users/Juan/Desktop/Mis_proyectos/Proyectos_variados/prueba_foundry/prueba_foundry/broadcast/Staker.s.sol/421614/run-latest.json
+
+Sensitive values saved to: /mnt/c/Users/Juan/Desktop/Mis_proyectos/Proyectos_variados/prueba_foundry/prueba_foundry/cache/Staker.s.sol/421614/run-latest.json
+------------------------####################----------------------------
+
+Otra forma: 
+desplegar contratos sin script: forge create
+Verificar contratos: forge verify
+
+
+Repositorio de Cristian de referencia: https://github.com/crisramb665/foundry_workshop
+
