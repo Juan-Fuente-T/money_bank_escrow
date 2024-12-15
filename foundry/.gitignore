@@ -19,3 +19,4 @@ docs/
 .vscode/
 .idea/
 lib/
+lib/forge-std/
