@@ -31,8 +31,8 @@
   margin: 5px 0;
 }
 
-.offerCard button {
-  background-color: #e2f212;
+.offerCard .accept-button {
+  background-color: #ffb657;
   color: #0c2d59;
   border: none;
   border-radius: 5px;
@@ -42,10 +42,36 @@
   margin-top: 10px;
 }
 
-.offerCard button:hover {
-  background-color: #d1e510;
+.offerCard .accept-button:hover {
+  background-color: #fdd197;
+  scale: 1.03;
+  /* background-color: #515dff; */
 }
 .offercard-button-container {
   display: flex;
   justify-content: end;
+}
+.cancel-button {
+  background-color: #ec8181;
+  color: #0c2d59 !important;
+  border: none !important;
+  border-radius: 5px !important;
+  padding: 10px 20px !important;
+  font-size: 16px !important;
+  cursor: pointer !important;
+  margin-top: 10px !important;
+}
+.cancel-button:hover {
+  scale: 1.03;
+  background-color: #f36c6c;
+}
+.modal-content-confirmation button {
+  background-color: #ffb657;
+  color: #0c2d59;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 10px;
 }

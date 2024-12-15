@@ -1,0 +1,19 @@
+Mejoras necesarias o a estudiar en el contrato de Towerbank:
+
+-Añadir una función Receive para asegurarse de que el ether enviado al contrato no se vaya a perder en ningún caso.
+
+- Limitar transacciones? Con idea de que un posible hackeo no puedo retirar enormes cantidades en una única transacción.
+
+- Estudiar la posibilidad de enviar directamente los tokens por parte del user desde el front cuando se crea un escrow con usdt. Ahora los tranfiere el contrato desde el user, pero se necesita una transaccion a mayores para aprobarla, por lo que incurre en mayor gasto. 
+
+- Devolver los fondos al creador por parte del owner del contrato? Sería una medida de emergencia, pero ¿necesaria existiendo la posibilidad de la cancelacion?
+
+- Implementar la codificacion de las firmas de las llamadas a las funciones para seguridad (también en el front)
+
+- Quitar los precios fijados para evitar llamadas a la API de coingecko durante el desarrollo.
+
+- ¿Estados de las fees? ¿En el contrato? Implementar en el front.
+
+- Mejorar la conexion con la wallet con un sistema tipo wallet conect o raindow kit
+
+- El codigo del front es largo. ¿Interesa hacerlo mas modular?

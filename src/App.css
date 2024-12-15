@@ -1,7 +1,28 @@
 /*
 AZUL 1: #0c2d59 claro
 AZUL 2: #1b3b6f medio
+naranja: #ffb657;
+naranja hover: #ffb451
+antiguo amarillo/verdoso: #e2f212
+antiguo amarillo/verdoso hover: #d1e510;
 */
+.body {
+  /* align-items: center;
+  justify-content: center;
+  align-items: center; */
+  /* min-height: 50vh;  */
+  min-height: 100vh;
+  height: auto;
+  display: flex;
+  align-items: center;
+  align-self: center;
+  align-content: center;
+  justify-content: center;
+  justify-items: center;
+  justify-self: center;
+  vertical-align: middle;
+}
+
 .modal-custom {
   /* display: flex; */
   flex-wrap: wrap;
@@ -27,15 +48,30 @@ AZUL 2: #1b3b6f medio
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  height: auto;
+  /* justify-content: flex-start; */
   min-height: 50vh;
+  /* min-height: 100vh; */
+  /* height: auto; */
   font-size: 1.2rem;
   color: #ffffff;
   border-radius: 8px;
   padding: 20px;
   background-color: #1a1a2e;
 }
+/*  .mainContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  height: auto;
+  font-size: 1.2rem;
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 20px;
+  background-color: #1a1a2e;
+  margin: 10px 10px;
+} */
 .mainContainer h1 {
   font-size: 1.6rem;
 }
@@ -72,12 +108,12 @@ AZUL 2: #1b3b6f medio
 
 .containerTitle .title {
   font-size: 2.5em;
-  margin-bottom: 10px;
+  /* margin-bottom: 10px; */
 }
 
 .containerTitle .logo {
   width: 150px;
-  margin: 0 auto 20px;
+  margin: auto 20px;
 }
 
 .containerCrear,
@@ -99,9 +135,36 @@ AZUL 2: #1b3b6f medio
   align-items: center;
   gap: 20px;
 }
+.logout-title-logo-container {
+  display: flex;
+  justify-content: space-between;
+  /* justify-content: space-between; */
+  align-items: center;
+  margin-bottom: 10px;
+}
+.logout-title-logo-container p {
+  font-size: 1.3em;
+}
+.title-container {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+  margin-left: 50px; /*CUIDADO en responsive*/
+}
+.title.container .description {
+  margin-top: 100px;
+}
+
+.title-logo-container {
+  display: flex;
+  /* justify-content: stretch; */
+  justify-content: space-between;
+  align-items: center;
+  /* gap: 20px; */
+}
 
 .publish-offer-button {
-  background-color: #e2f212; /* Fondo de botón amarillo claro */
+  background-color: #fac682; /* Fondo de botón amarillo claro */
   color: #0c2d59; /* Texto en azul oscuro */
   border: none;
   border-radius: 5px;
@@ -116,7 +179,10 @@ AZUL 2: #1b3b6f medio
 }
 
 .publish-offer-button:hover {
-  background-color: #d1e510; /* Efecto hover para el botón */
+  /* background-color: #ffb451; */
+  background-color: #fdd197;
+  scale: 1.03;
+  /* Efecto hover para el botón */
 }
 
 .approveAddStable {
@@ -151,7 +217,7 @@ AZUL 2: #1b3b6f medio
 
 .description {
   font-size: 1.1em;
-  margin-top: 20px;
+  /* margin-top: 20px; */
 }
 .balances-container {
   display: flex;
@@ -160,15 +226,15 @@ AZUL 2: #1b3b6f medio
   width: calc(
     50% - 20px
   ); /* Ajusta el ancho para que el input esté bien alineado con el formulario */
-  padding: 15px;
+  padding: 2px;
   margin: auto;
-  margin-bottom: 15px;
+  margin-bottom: 2px;
   margin-top: 25px;
   /* border: 1px solid #b3d335; Borde verde brillante */
   border-radius: 5px;
   background-color: #1b3b6f; /* Fondo azul oscuro para inputs */
   color: #ffffff; /* Texto en blanco */
-  font-size: 1.5rem;
+  font-size: 1.4rem;
 }
 
 .containerEscrowOwner {
@@ -221,6 +287,15 @@ AZUL 2: #1b3b6f medio
   background-color: #2d5fbf;
   border-radius: 8px; */
 }
+.app-offers-map {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  background-color: #2d5fbf;
+  border-radius: 8px;
+}
 .app-offers-eth,
 .app-offers-token {
   display: flex;
@@ -265,4 +340,34 @@ AZUL 2: #1b3b6f medio
   width: 40%;
   font-size: 1.2rem;
   /* border: 1px solid #ffffff; */
+}
+.connect-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  /* min-height: 50vh; */
+  height: 100vh;
+  height: auto;
+
+  /*justify-content: center; */
+}
+.connect-container h1 {
+  font-size: 1.5rem;
+}
+
+.connect-container button {
+  background-color: #ffb657; /* Fondo de botón amarillo claro */
+  color: #062247; /* Texto en azul oscuro */
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  display: block;
+  width: 50%;
+  margin-top: 20px;
+  text-transform: uppercase;
+  transition: background-color 0.3s ease;
 }
