@@ -10,11 +10,11 @@ import LoadingSpinner from "./utils/LoadingSpinner";
 import ModalResumen from './components/ModalResumen';
 import FormularioOferta from './components/FormularioOferta'
 import OfferCard from "./components/OfferCard";
-import { useAccount, useBalance, useProvider } from 'wagmi'
+import { useAccount, useBalance } from 'wagmi'
 import { usePrices } from './hooks/usePrices';
 import useFees from "./hooks/useFees";
 import { useEscrow } from "./hooks/useEscrow";
-import { useContract, useSigner } from 'wagmi';
+// import { useContract, useSigner } from 'wagmi';
 
 // Importaciones TEMPORALMENTE en deshuso
 // import truncateEthAddress from 'truncate-eth-address';
@@ -64,19 +64,19 @@ export default function Home() {
   let prices: { [key: string]: { precio: number; nombre: string; } } = {};
 
 
- /** 
- * Sets the component as mounted.
- */
+  /** 
+  * Sets the component as mounted.
+  */
   useEffect(() => {
     setIsMounted(true);
   }, []);
-  
+
   /** 
    * Initializes the contract with the user's wallet if available.
  * 
  * @async
  */
-   useEffect(() => {
+  useEffect(() => {
     const initializeContract = async () => {
       try {
         if (typeof window.ethereum !== 'undefined' && address) {
@@ -97,7 +97,7 @@ export default function Home() {
     }
   }, [address]);
 
- 
+
   /** 
    * Effect to update the state when the user's address changes.
    * Sets the address, verifies if the user is logged in, fetches fees,
@@ -113,7 +113,7 @@ export default function Home() {
         setFeeBuyer(fees?.feeBuyer);
         setFeeSeller(fees?.feeSeller);
       }
-       // Sets the Ethereum balance if no errors are found and the data is available
+      // Sets the Ethereum balance if no errors are found and the data is available
       if (!isError && data?.value !== undefined) {
         setEthBalance(ethers.formatEther(data?.value)); // Convierte bigint a string
       }
@@ -149,7 +149,7 @@ export default function Home() {
   const valorUsdEnEth = usdtPrecio / ethPrecio;
 
   const { createEscrow, cancelEscrow, acceptEscrow } = useEscrow(contract, tokenContract);
- 
+
   /**
    * Handles the creation of a new escrow by interacting with the smart contract.
    * Fetches updated offers and resets the form after successful creation.
@@ -160,7 +160,7 @@ export default function Home() {
    * @throws Will log an error if the contract interaction fails.
    */
   async function handleCreateEscrow(value: string, price: string, isEthOffer: boolean) {
-  
+
     // setTimeout(() => {
     //   setIsLoading(true);
     // }, 1000);
@@ -277,10 +277,10 @@ export default function Home() {
     fetchData();
   }, [fetchOffers, fetchFees]);
 
- /** 
- * Handles changes in the form inputs.
- * If a new cryptocurrency is selected, resets associated data.
- */
+  /** 
+  * Handles changes in the form inputs.
+  * If a new cryptocurrency is selected, resets associated data.
+  */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, type, value } = e.target;
     if (type === "radio" && name === "crypto") {
@@ -301,9 +301,9 @@ export default function Home() {
       }));
     }
   };
- /** 
- * Handles the submission of the offer form. Opens the modal with the current form data.
- */
+  /** 
+  * Handles the submission of the offer form. Opens the modal with the current form data.
+  */
   const handleSubmitModal = (e: any) => {
     e.preventDefault();
     openFormularioOferta(datosModal);// Abre el modal con los datos actuales del formularioOferta
@@ -323,18 +323,18 @@ export default function Home() {
     setIsFormVisible(false)
   };
 
- /** 
- * Shows the offer form.
- */
+  /** 
+  * Shows the offer form.
+  */
   const openForm = () => {
     setIsFormVisible(true);
   };
- 
- /** 
- * Confirms the action in the confirmation modal based on the selected cryptocurrency.
- * 
- * @async
- */
+
+  /** 
+  * Confirms the action in the confirmation modal based on the selected cryptocurrency.
+  * 
+  * @async
+  */
   const handleConfirmModal = async () => {
     setIsLoading(true);
     try {
@@ -352,20 +352,20 @@ export default function Home() {
     }
     setIsModalOpen(false);
   };
-  
- /** 
- * Opens the form modal with the provided data.
- * 
- * @param {any} data - The form data.
- */
+
+  /** 
+  * Opens the form modal with the provided data.
+  * 
+  * @param {any} data - The form data.
+  */
   const openFormularioOferta = (data: any) => {
     setDatosModal(data);
     setIsModalOpen(true);
   };
 
- /** 
- * Closes the summary modal.
- */
+  /** 
+  * Closes the summary modal.
+  */
   const closeModal = () => {
     setIsModalOpen(false);
   };
@@ -406,116 +406,117 @@ export default function Home() {
     </>
   );
   return (
-    <div className="main">{loggedIn ? loggedInView : unloggedInView}
-      {loggedIn && (
-        <div className="text-container">
-          <div>
-            <div className="containerTitle">
-              <div className="title-logo-container">
-                <img className="logo" src="/MoneyBank_logo.png" alt="Logo de Moneybank, intercambio p2p de criptomonedas" />
-                <div className="title-container">
-                  <h1 className="title">Money Bank Escrow</h1>
-                  <p className="description">Intercambio de USDT-ETH entre particulares</p>
+    <div className="ext-container">
+      <div className="main">{loggedIn ? loggedInView : unloggedInView}
+        {loggedIn && (
+          <div className="text-container">
+            <div>
+              <div className="containerTitle">
+                <div className="title-logo-container">
+                  <img className="logo" src="/MoneyBank_logo.png" alt="Logo de Moneybank, intercambio p2p de criptomonedas" />
+                  <div className="title-container">
+                    <h1 className="title">Money Bank Escrow</h1>
+                    <p className="description">Intercambio de USDT-ETH entre particulares</p>
+                  </div>
+                  <ConnectButton />
                 </div>
-                <ConnectButton />
+                {isLoading && LoadingSpinner("Cargando datos...")}
+                {/* {address && <p className="show-balance">Dirección del usuario: {truncateEthAddress(address)}</p>} */}
+                <div className="balances-container">
+                  {ethBalance && <p className="show-balance">Balance de USDT: {balanceOf.toString()}</p>}
+                  {ethBalance && <p className="show-balance">Balance de ETH: {ethBalance}</p>}
+                </div>
               </div>
-              {isLoading && LoadingSpinner("Cargando datos...")}
-              {/* {address && <p className="show-balance">Dirección del usuario: {truncateEthAddress(address)}</p>} */}
-              <div className="balances-container">
-                {ethBalance && <p className="show-balance">Balance de USDT: {balanceOf.toString()}</p>}
-                {ethBalance && <p className="show-balance">Balance de ETH: {ethBalance}</p>}
+              <div className='app-price-container'>
+                <div className='app-prices'>
+                  {prices && <p>1 ETH in DOLLARS:  {' '} {ethPrecio} </p>}
+                  {prices && <p>1 USDT in DOLLARS:  {' '}{usdtPrecio} </p>}
+                </div>
+                <div className='app-prices'>
+                  {prices && <p>1 ETH in USDT: {' '}{valorEthEnUsd}</p>}
+                  {prices && <p>1 USDT in ETH: {' '}{valorUsdEnEth}</p>}
+                </div>
               </div>
-            </div>
-            <div className='app-price-container'>
-              <div className='app-prices'>
-                {prices && <p>1 ETH in DOLLARS:  {' '} {ethPrecio} </p>}
-                {prices && <p>1 USDT in DOLLARS:  {' '}{usdtPrecio} </p>}
-              </div>
-              <div className='app-prices'>
-                {prices && <p>1 ETH in USDT: {' '}{valorEthEnUsd}</p>}
-                {prices && <p>1 USDT in ETH: {' '}{valorUsdEnEth}</p>}
-              </div>
-            </div>
-            <div className="styles.containerData">
-              <div>
-                <div className="app-offers-container">
-                  <div className="app-offers-eth">
-                    <h2>Ofertas en ETH</h2>
-                    <div className="app-offers-map">
-                      {nativeOffers.length > 0 ? (
-                        nativeOffers.map((offer) => (
-                          <OfferCard
-                            key={offer.id}
-                            offer={offer}
-                            acceptEscrow={() => handleAcceptEscrow(offer.id, offer[3], true)}
-                            cancelEscrow={() => handleCancelEscrow(offer.id)}
-                            address={address}
-                          />
-                        ))
-                      ) : (
-                        <p>No hay ofertas en ETH disponibles.</p>
-                      )}
+              <div className="styles.containerData">
+                <div>
+                  <div className="app-offers-container">
+                    <div className="app-offers-eth">
+                      <h2>Ofertas en ETH</h2>
+                      <div className="app-offers-map">
+                        {nativeOffers.length > 0 ? (
+                          nativeOffers.map((offer) => (
+                            <OfferCard
+                              key={offer.id}
+                              offer={offer}
+                              acceptEscrow={() => handleAcceptEscrow(offer.id, offer[3], true)}
+                              cancelEscrow={() => handleCancelEscrow(offer.id)}
+                              address={address}
+                            />
+                          ))
+                        ) : (
+                          <p>No hay ofertas en ETH disponibles.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="app-offers-container">
+                    <div className="app-offers-token">
+                      <h2>Ofertas en USDT</h2>
+                      <div className="app-offers-map">
+                        {usdtOffers.length > 0 ? (
+                          usdtOffers.map((offer) => (
+                            <OfferCard
+                              key={offer.id}
+                              offer={offer}
+                              acceptEscrow={() => handleAcceptEscrow(offer.id, offer[3], false)}
+                              cancelEscrow={() => handleCancelEscrow(offer.id)}
+                              address={address}
+                            />
+                          ))
+                        ) : (
+                          <p>No hay ofertas en USDT disponibles.</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="app-offers-container">
-                  <div className="app-offers-token">
-                    <h2>Ofertas en USDT</h2>
-                    <div className="app-offers-map">
-                      {usdtOffers.length > 0 ? (
-                        usdtOffers.map((offer) => (
-                          <OfferCard
-                            key={offer.id}
-                            offer={offer}
-                            acceptEscrow={() => handleAcceptEscrow(offer.id, offer[3], false)}
-                            cancelEscrow={() => handleCancelEscrow(offer.id)}
-                            address={address}
-                          />
-                        ))
-                      ) : (
-                        <p>No hay ofertas en USDT disponibles.</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="offersContainer">
-                {!isFormVisible ? (
-                  <button
-                    className="publish-offer-button"
-                    onClick={openForm}
-                  >
-                    PUBLICAR OFERTA
-                  </button>
-                ) : (
-                  isFormVisible && (
-                    <FormularioOferta
-                      datosModal={datosModal}
-                      handleSubmitModal={handleSubmitModal}
-                      handleChange={handleChange}
-                      onCloseForm={handleCloseForm}
-                      ethBalance={ethBalance}
-                      balanceOf={balanceOf}
-                      prices={prices}
-                    />
-                  )
-                )}
-                {isModalOpen && (
-                  <div className="modal-container">
-                    <div>
-                      <ModalResumen
-                        onCloseModal={closeModal}
+                <div className="offersContainer">
+                  {!isFormVisible ? (
+                    <button
+                      className="publish-offer-button"
+                      onClick={openForm}
+                    >
+                      PUBLICAR OFERTA
+                    </button>
+                  ) : (
+                    isFormVisible && (
+                      <FormularioOferta
                         datosModal={datosModal}
-                        onConfirm={handleConfirmModal}
+                        handleSubmitModal={handleSubmitModal}
+                        handleChange={handleChange}
+                        onCloseForm={handleCloseForm}
+                        ethBalance={ethBalance}
+                        balanceOf={balanceOf}
+                        prices={prices}
                       />
+                    )
+                  )}
+                  {isModalOpen && (
+                    <div className="modal-container">
+                      <div>
+                        <ModalResumen
+                          onCloseModal={closeModal}
+                          datosModal={datosModal}
+                          onConfirm={handleConfirmModal}
+                        />
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-              {/* Aqui iria aquello que puede hacer el dueño del contrato, por ejemplo retirar las fee */}
-              {/* {address && address.toLowerCase() === owner?.toLowerCase() ? (
+                  )}
+                </div>
+                {/* Aqui iria aquello que puede hacer el dueño del contrato, por ejemplo retirar las fee */}
+                {/* {address && address.toLowerCase() === owner?.toLowerCase() ? (
                 <div>
                    {isLoading ? (
                   <button className="button">Loading...</button>
@@ -543,36 +544,37 @@ export default function Home() {
                 <div className="containerReleases">
                 </div>
                 </div>  */}
-              {/* <div className={styles.containerWithdraw}>
+                {/* <div className={styles.containerWithdraw}>
                 <form className="approveAddStable" onSubmit={handleSubmit}>
                       <input type="text" placeholder="Direccion EstableCoin"
                       value={stableAddress} onChange={(e) => setStableAddress(e.target.value)} />
                       <button type="submit">Añadir StableCoin</button>
                     </form> */}
-              {/* <button className={styles.withdrawButton} onClick={withdrawFees}>
+                {/* <button className={styles.withdrawButton} onClick={withdrawFees}>
                     Retirar Fees USDT
                   </button>
                   <button className={styles.withdrawButton} onClick={withdrawFeesNativeCoin}>
                  
                     Retirar Fees ETH
                   </button> */}
-              {/* </div>  */}
+                {/* </div>  */}
 
-              {/* </div>
+                {/* </div>
                 )}
                 </div>
               ) : (
                 ""
               )} */}
+              </div>
             </div>
           </div>
-        </div>
-      )}
-      {!loggedIn && (
-        <div className="connect-container">
-          <h1>CONECTATE A LA APLICACION</h1>
-        </div>
-      )}
+        )}
+        {!loggedIn && (
+          <div className="connect-container">
+            <h1>CONECTATE A LA APLICACION</h1>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
