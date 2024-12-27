@@ -167,7 +167,7 @@ export default function Home() {
     setIsLoading(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 0));
-      console.log("ISLOADING1", isLoading);
+      // console.log("ISLOADING1", isLoading);
       await createEscrow(value, price, isEthOffer);
       fetchOffers();
       handleCloseForm();
@@ -187,7 +187,7 @@ export default function Home() {
   async function handleCancelEscrow(offerId: number) {
     setIsLoading(true);
     try {
-      console.log("ISLOADING1", isLoading);
+      // console.log("ISLOADING1", isLoading);
       await cancelEscrow(offerId);
       fetchOffers();
       handleCloseForm();
@@ -418,7 +418,7 @@ export default function Home() {
                     <h1 className="title">Money Bank Escrow</h1>
                     <p className="description">Intercambio de USDT-ETH entre particulares</p>
                   </div>
-                  <ConnectButton />
+                  <ConnectButton/>
                 </div>
                 {isLoading && LoadingSpinner("Cargando datos...")}
                 {/* {address && <p className="show-balance">Dirección del usuario: {truncateEthAddress(address)}</p>} */}

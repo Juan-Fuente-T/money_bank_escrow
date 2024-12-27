@@ -29,6 +29,7 @@ antiguo amarillo/verdoso hover: #d1e510;
   height: 100%;
   padding: 5px; 
   width: 100%;
+  margin: auto;
   max-width: 1200px;
   box-sizing: border-box;
   min-height: 100vh; 
@@ -166,9 +167,9 @@ main {
 .logout-title-logo-container {
   display: flex;
   justify-content: space-between;
-  /* justify-content: space-between; */
   align-items: center;
-  margin-bottom: 10px;
+  /* margin-bottom: 10px; */
+  gap: 20px;
 }
 .logout-title-logo-container p {
   font-size: 1.3em;
@@ -176,8 +177,10 @@ main {
 .title-container {
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
   margin-bottom: 10px;
-  margin-left: 50px; /*CUIDADO en responsive*/
+  /* margin-left: 50px; CUIDADO en responsive */
 }
 .title.container .description {
   margin-top: 100px;
@@ -398,4 +401,43 @@ main {
   margin-top: 20px;
   text-transform: uppercase;
   transition: background-color 0.3s ease;
+}
+@media (max-width: 1024px) {
+}
+
+@media (max-width: 640px) {
+.title-logo-container{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 10px;
+}
+.title-container {
+  display: flex;
+  flex-direction: column; /* Los textos se apilan uno encima del otro */
+  align-items: center; /* Centra los textos */
+  gap: 5px;
+}
+
+.logo, .ConnectButton {
+  display: block; /* Asegura que tanto el logo como el botón estén en su propio bloque */
+}
+
+.title-logo-container > .ConnectButton {
+  margin-left: 0; /* Evita que el botón se mueva hacia la derecha */
+}
+/* Asegúrate de que el botón "ConnectButton" se alinee a la derecha */
+iekbcc0 ju367va ju367v1s{
+  align-self: flex-end; /* El botón se alinea a la derecha */
+  margin-top: 200px;
+}
+.show-balance{
+  font-size: 0.9rem;
+}
+.app-prices{
+  font-size: 1rem;
+  width: 45%;
+}
 }

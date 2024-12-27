@@ -1,16 +1,15 @@
-
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 // import "forge-std/console.sol";
 // import {console2} from "forge-std/Test.sol";
 // import {console} from "forge-std/console.sol";
 import "../lib/forge-std/src/Test.sol";
-import './IERC20.sol';
-import './Address.sol';
-import './SafeERC20.sol';
-import './ReentrancyGuard.sol';
-import './Context.sol';
-import './Ownable.sol';
+import "./IERC20.sol";
+import "./Address.sol";
+import "./SafeERC20.sol";
+import "./ReentrancyGuard.sol";
+import "./Context.sol";
+import "./Ownable.sol";
 
 /**
  * @title Moneybank
@@ -29,7 +28,7 @@ contract Moneybank is ReentrancyGuard, Ownable {
     // Counter for order IDs
     uint256 public orderId;
     // Mapping of order ID to Escrow struct
-    mapping(uint256=> Escrow) public escrows;
+    mapping(uint256 => Escrow) public escrows;
     // Mapping of whitelisted stablecoin addresses
     mapping(address => bool) public whitelistedStablesAddresses;
     mapping(IERC20 => uint) public feesAvailable;
@@ -42,8 +41,14 @@ contract Moneybank is ReentrancyGuard, Ownable {
     event EtherFeesSuccessfullyWithdrawn(bool indexed isSent);
     event TokenAddedToWhitelist(address indexed token);
     event TokenRemovedFromWhitelist(address indexed token);
-    event BuyerFeeUpdated(uint256 indexed oldFeeBuyer,uint256 indexed newFeeBuyer);
-    event SellerFeeUpdated(uint256 indexed oldFeeSeller, uint256 indexed newFeeSeller);
+    event BuyerFeeUpdated(
+        uint256 indexed oldFeeBuyer,
+        uint256 indexed newFeeBuyer
+    );
+    event SellerFeeUpdated(
+        uint256 indexed oldFeeSeller,
+        uint256 indexed newFeeSeller
+    );
 
     error CantBeAddressZero();
     error SellerCantBeAddressZero();
@@ -99,7 +104,7 @@ contract Moneybank is ReentrancyGuard, Ownable {
         uint256 cost; //Monto compra en moneda 2
         uint256 sellerfee; //Comision vendedor
         uint256 buyerfee; //Comision comprador
-        bool escrowNative;//De Escrow, USDT (false, por defecto) o ETH(true)
+        bool escrowNative; //De Escrow, USDT (false, por defecto) o ETH(true)
         IERC20 currency; //Moneda
         EscrowStatus status; //Estado
     }
@@ -113,54 +118,57 @@ contract Moneybank is ReentrancyGuard, Ownable {
     }
 
     // ================== Begin External functions ==================
-    
-/**
-* @dev Creates a new escrow transaction with an ERC20 token.
-* This function allows users to initiate a new escrow transaction for an ERC20 token, specifying the amount of the transaction, the cost calculated based on the price per unit, and the currency itself.
-*
-* @param _value The total amount of the transaction, representing the sum of the item's price and the seller's fee.
-* @param _cost The calculated cost of the transaction, derived from multiplying the item's price by the quantity.
-* @param _currency The ERC20 token involved in the transaction.
-* 
-* Requirements:
-* - The caller must be whitelisted to perform this operation.
-* - The `_seller` cannot be the same as the buyer.
-* - The `_seller` cannot be the zero address.
-* - `_value` must be greater than 0.
-* - The transaction value must be sufficient to cover the transaction amount plus the buyer's fee.
-* 
-* Effects:
-* - Checks if the token is whitelisted and if the sender is authorized to perform the transaction.
-* - Calculates the seller's fee based on the transaction value and the predefined fee rate.
-* - Initializes a new escrow record with the provided details.
-* - Transfers the specified amount of tokens from the buyer to the contract, including the seller's fee.
-* 
-* Events:
-* - Emits an `EscrowDeposit` event upon successful creation of the escrow.
-*/
+
+    /**
+     * @dev Creates a new escrow transaction with an ERC20 token.
+     * This function allows users to initiate a new escrow transaction for an ERC20 token, specifying the amount of the transaction, the cost calculated based on the price per unit, and the currency itself.
+     *
+     * @param _value The total amount of the transaction, representing the sum of the item's price and the seller's fee.
+     * @param _cost The calculated cost of the transaction, derived from multiplying the item's price by the quantity.
+     * @param _currency The ERC20 token involved in the transaction.
+     *
+     * Requirements:
+     * - The caller must be whitelisted to perform this operation.
+     * - The `_seller` cannot be the same as the buyer.
+     * - The `_seller` cannot be the zero address.
+     * - `_value` must be greater than 0.
+     * - The transaction value must be sufficient to cover the transaction amount plus the buyer's fee.
+     *
+     * Effects:
+     * - Checks if the token is whitelisted and if the sender is authorized to perform the transaction.
+     * - Calculates the seller's fee based on the transaction value and the predefined fee rate.
+     * - Initializes a new escrow record with the provided details.
+     * - Transfers the specified amount of tokens from the buyer to the contract, including the seller's fee.
+     *
+     * Events:
+     * - Emits an `EscrowDeposit` event upon successful creation of the escrow.
+     */
     function createEscrowToken(
         uint256 _value,
         uint256 _cost,
         IERC20 _currency
     ) external virtual {
-   ///////////////////////CHECKS///////////////////////
+        ///////////////////////CHECKS///////////////////////
         _sellerValidation(_value, _cost, _currency);
-       ///////////////////////EEFETCS/////////////////////// 
+        ///////////////////////EEFETCS///////////////////////
         uint8 _decimals = _currency.decimals();
 
         //Obtiene el monto a transferir desde el comprador al contrato
         uint256 _amountFeeSeller = ((_value * (feeSeller * 10 ** _decimals)) /
             (100 * 10 ** _decimals)) / 1000;
 
-        if(_value + _amountFeeSeller > _currency.allowance(msg.sender, address(this))){
-        // if(_allowance < _currency.allowance(msg.sender, address(this))){
+        if (
+            _value + _amountFeeSeller >
+            _currency.allowance(msg.sender, address(this))
+        ) {
+            // if(_allowance < _currency.allowance(msg.sender, address(this))){
             revert SellerApproveEscrowFirst();
         }
-       
-        orderId ++;
+
+        orderId++;
         escrows[orderId] = Escrow(
             payable(address(0)), // Futuro comprador, buyer
-            payable(msg.sender),//creador del escrow, seller
+            payable(msg.sender), //creador del escrow, seller
             _value,
             _cost,
             _amountFeeSeller,
@@ -168,8 +176,8 @@ contract Moneybank is ReentrancyGuard, Ownable {
             false,
             _currency,
             EscrowStatus.Funded
-    );
-       ///////////////////////INTERACTIONS/////////////////////// 
+        );
+        ///////////////////////INTERACTIONS///////////////////////
 
         //Transferir USDT al contracto
         _currency.safeTransferFrom(
@@ -180,212 +188,222 @@ contract Moneybank is ReentrancyGuard, Ownable {
         emit EscrowDeposit(orderId, escrows[orderId]);
     }
 
-/**
-* @dev Creates a new escrow transaction with native coin.
-* This function allows a seller to deposit funds into an escrow contract, 
-* setting up a transaction with a specified value and cost. It also calculates 
-* and sets the fees for both the seller and the buyer based on predefined rates.
-*
-* @param _value The total amount of the transaction, including the seller's fee.
-* @param _cost The amount of native coins (e.g., ETH) required to initiate the transaction.
-* @param _currency The ERC20 token currency involved in the transaction.
-    * return orderId The unique identifier assigned to this new escrow transaction.
-*
-* Requirements:
-* - `seller` cannot be the same as the buyer.
-* - `seller` cannot be the zero address.
-* - `_value` must be greater than 0.
-* - The transaction value must be sufficient to cover the transaction amount plus buyer fee.
-* - The currency passed must be whitelisted in the contract.
-*
-* Events emitted:
-* - `EscrowDeposit`: Indicates that a new escrow transaction has been successfully created.
-*/
+    /**
+     * @dev Creates a new escrow transaction with native coin.
+     * This function allows a seller to deposit funds into an escrow contract,
+     * setting up a transaction with a specified value and cost. It also calculates
+     * and sets the fees for both the seller and the buyer based on predefined rates.
+     *
+     * @param _value The total amount of the transaction, including the seller's fee.
+     * @param _cost The amount of native coins (e.g., ETH) required to initiate the transaction.
+     * @param _currency The ERC20 token currency involved in the transaction.
+     * return orderId The unique identifier assigned to this new escrow transaction.
+     *
+     * Requirements:
+     * - `seller` cannot be the same as the buyer.
+     * - `seller` cannot be the zero address.
+     * - `_value` must be greater than 0.
+     * - The transaction value must be sufficient to cover the transaction amount plus buyer fee.
+     * - The currency passed must be whitelisted in the contract.
+     *
+     * Events emitted:
+     * - `EscrowDeposit`: Indicates that a new escrow transaction has been successfully created.
+     */
     function createEscrowNativeCoin(
         uint256 _value,
         uint256 _cost,
         IERC20 _currency
     ) external payable virtual {
-   ///////////////////////CHECKS///////////////////////
+        ///////////////////////CHECKS///////////////////////
         _sellerValidation(_value, _cost, _currency);
-   ///////////////////////EEFETCS///////////////////////
+        ///////////////////////EEFETCS///////////////////////
 
         //Obtiene el monto a transferir desde el comprador al contrato
         uint256 _amountFeeSeller = ((_value * (feeSeller * 10 ** 18)) /
             (100 * 10 ** 18)) / 1000;
         // require((_value + _amountFeeBuyer) <= msg.value, "Incorrect amount");
-        if(msg.value < _value + _amountFeeSeller){
+        if (msg.value < _value + _amountFeeSeller) {
             revert IncorretAmount();
         }
 
-        orderId ++;
+        orderId++;
         escrows[orderId] = Escrow(
             payable(address(0)), //Futuro comprador, buyer
-            payable(msg.sender),//Creador del escrow, seller
+            payable(msg.sender), //Creador del escrow, seller
             _value,
             _cost,
             _amountFeeSeller,
             feeBuyer,
             true,
-            IERC20( _currency),
+            IERC20(_currency),
             EscrowStatus.Funded
         );
 
         emit EscrowDeposit(orderId, escrows[orderId]);
     }
 
-/**
- * @dev Accepts an existing escrow transaction.
- * This function allows a buyer to finalize an escrowed transaction, transferring
- * either native coins (ETH) or ERC20 tokens from the escrow to the seller, and
- * then transferring the agreed-upon amount to the buyer minus any applicable fees.
- *
- * @param _orderId The unique identifier of the escrow transaction to be accepted.
- *
- * Requirements:
- * - The escrow must be funded and not yet completed.
- * - The caller must not be the seller of the escrow.
- * - The escrow must not have already been accepted.
- * - If the escrow involves ERC20 tokens, the buyer must have approved the contract
- *   to spend the necessary amount on their behalf.
- *
- * Effects:
- * - Updates the status of the escrow to Completed.
- * - Transfers the agreed-upon amount from the buyer to the seller, handling both
- *   native coins and ERC20 tokens according to the type of escrow.
- * - Deducts and transfers the buyer's fee from the escrow amount to the contract.
- * - Emits an EscrowComplete event to indicate the completion of the escrow transaction.
- *
- * Interactions:
- * - Calls `safeTransferFrom` on the ERC20 token contract if the escrow involves tokens.
- * - Performs a native coin transfer using low-level calls if the escrow involves ETH.
- *
- * Note: The buyer must approve the contract to spend the necessary amount of tokens
- * on their behalf before calling this function if the escrow involves ERC20 tokens.
- */
-function acceptEscrow(uint256 _orderId) external payable nonReentrant {
-    Escrow storage escrow = escrows[_orderId];
+    /**
+     * @dev Accepts an existing escrow transaction.
+     * This function allows a buyer to finalize an escrowed transaction, transferring
+     * either native coins (ETH) or ERC20 tokens from the escrow to the seller, and
+     * then transferring the agreed-upon amount to the buyer minus any applicable fees.
+     *
+     * @param _orderId The unique identifier of the escrow transaction to be accepted.
+     *
+     * Requirements:
+     * - The escrow must be funded and not yet completed.
+     * - The caller must not be the seller of the escrow.
+     * - The escrow must not have already been accepted.
+     * - If the escrow involves ERC20 tokens, the buyer must have approved the contract
+     *   to spend the necessary amount on their behalf.
+     *
+     * Effects:
+     * - Updates the status of the escrow to Completed.
+     * - Transfers the agreed-upon amount from the buyer to the seller, handling both
+     *   native coins and ERC20 tokens according to the type of escrow.
+     * - Deducts and transfers the buyer's fee from the escrow amount to the contract.
+     * - Emits an EscrowComplete event to indicate the completion of the escrow transaction.
+     *
+     * Interactions:
+     * - Calls `safeTransferFrom` on the ERC20 token contract if the escrow involves tokens.
+     * - Performs a native coin transfer using low-level calls if the escrow involves ETH.
+     *
+     * Note: The buyer must approve the contract to spend the necessary amount of tokens
+     * on their behalf before calling this function if the escrow involves ERC20 tokens.
+     */
+    function acceptEscrow(uint256 _orderId) external payable nonReentrant {
+        Escrow storage escrow = escrows[_orderId];
 
-//////////////////////////////////CHECKS///////////////////////////////
+        //////////////////////////////////CHECKS///////////////////////////////
 
-        if (escrow.status != EscrowStatus.Funded){
-                revert EscrowIsNotFunded();
-            }
-        if (escrow.seller == msg.sender){
-                revert SellerCantBeTheSameAsBuyer();
-            }
-        if(msg.sender == address(0)){
+        if (escrow.status != EscrowStatus.Funded) {
+            revert EscrowIsNotFunded();
+        }
+        if (escrow.seller == msg.sender) {
+            revert SellerCantBeTheSameAsBuyer();
+        }
+        if (msg.sender == address(0)) {
             revert SellerCantBeAddressZero();
         }
-            
-//////////////////////////////////EFFECTS///////////////////////////////
-       
+
+        //////////////////////////////////EFFECTS///////////////////////////////
+
         uint256 amountFeeBuyer = (escrow.value * feeBuyer) / 10000;
 
         //NECESARIO  HACER UN APPROVE EN EL MOMENTO EN QUE EL BOB ACEPTE LA OFERTA EN EL FRONT
         // Transfer to buyer
         escrow.buyerfee = amountFeeBuyer;
         escrow.buyer = payable(msg.sender);
-        console.log("Is escrowNative", escrow.escrowNative);
 
-//////////////////////////////////INTERACTIONS///////////////////////////////
+        //////////////////////////////////INTERACTIONS///////////////////////////////
         if (escrow.escrowNative) {
-        
-            if (escrow.cost > escrow.currency.allowance(msg.sender, address(this))){
+            if (
+                escrow.cost >
+                escrow.currency.allowance(msg.sender, address(this))
+            ) {
                 revert BuyerApproveEscrowFirst();
             }
-          
+
             feesAvailableNativeCoin += amountFeeBuyer + escrow.sellerfee;
-            
+
             // Transfer tokens from buyer to seller
-            escrow.currency.safeTransferFrom(msg.sender, escrow.seller, escrow.cost);
+            escrow.currency.safeTransferFrom(
+                msg.sender,
+                escrow.seller,
+                escrow.cost
+            );
 
             // Transfer tokens from contract to buyer
-            (bool buyerSent, ) = payable(msg.sender).call{value: escrow.value - amountFeeBuyer}("");
+            (bool buyerSent, ) = payable(msg.sender).call{
+                value: escrow.value - amountFeeBuyer
+            }("");
             require(buyerSent, "Transfer to buyer failed");
-            
+
             // Refund excess value
             // if (msg.value > escrow.value + amountFeeBuyer) {
             //     (sent, ) = msg.sender.call{value: msg.value - (escrow.value + amountFeeBuyer)}("");
             //     require(sent, "Refund failed");
             // }
-            
         } else {
             feesAvailable[escrow.currency] += amountFeeBuyer + escrow.sellerfee;
-           
+
             require(msg.value >= escrow.cost, "Insufficient ETH value sent");
             // Transfer ETH from buyer to seller
             (bool sellerSent, ) = escrow.seller.call{value: escrow.cost}("");
-            require(sellerSent, "Transfer to seller failed");            
+            require(sellerSent, "Transfer to seller failed");
 
             // Transfer tokens from contract to buyer
-            escrow.currency.safeTransfer(msg.sender, escrow.value - amountFeeBuyer);        
+            escrow.currency.safeTransfer(
+                msg.sender,
+                escrow.value - amountFeeBuyer
+            );
         }
         escrow.status = EscrowStatus.Completed;
         escrow.buyer = payable(msg.sender);
         emit EscrowComplete(_orderId, escrow);
         delete escrows[_orderId];
     }
+
     /**
-    * @dev Cancels an escrow transaction.
-    * This function allows the seller to cancel an escrow transaction if it is in the Funded status.
-    * The function handles both native coin (ETH) and ERC20 token transfers based on the escrow's configuration.
-    *
-    * @param _orderId The unique identifier of the escrow transaction to be cancelled.
-    *
-    * Requirements:
-    * - The escrow must be in the Funded status.
-    * - The caller must be the seller of the escrow.
-    *
-    * Effects:
-    * - Updates the status of the escrow to Cancelled.
-    *
-    * Interactions:
-    * - If the escrow involves ERC20 tokens, it transfers the tokens from the escrow back to the seller using `safeTransfer`.
-    * - If the escrow involves native coins (ETH), it transfers the ETH back to the seller using a low-level call.
-    * 
-    * Emits:
-    * - `EscrowCancelled` event with the `_orderId` and the escrow details.
-    *
-    * Note: The escrow must be funded and not completed to call this function. The seller can only cancel if they are the owner of the escrow.
-    */
+     * @dev Cancels an escrow transaction.
+     * This function allows the seller to cancel an escrow transaction if it is in the Funded status.
+     * The function handles both native coin (ETH) and ERC20 token transfers based on the escrow's configuration.
+     *
+     * @param _orderId The unique identifier of the escrow transaction to be cancelled.
+     *
+     * Requirements:
+     * - The escrow must be in the Funded status.
+     * - The caller must be the seller of the escrow.
+     *
+     * Effects:
+     * - Updates the status of the escrow to Cancelled.
+     *
+     * Interactions:
+     * - If the escrow involves ERC20 tokens, it transfers the tokens from the escrow back to the seller using `safeTransfer`.
+     * - If the escrow involves native coins (ETH), it transfers the ETH back to the seller using a low-level call.
+     *
+     * Emits:
+     * - `EscrowCancelled` event with the `_orderId` and the escrow details.
+     *
+     * Note: The escrow must be funded and not completed to call this function. The seller can only cancel if they are the owner of the escrow.
+     */
 
     function cancelEscrow(uint256 _orderId) external nonReentrant {
         Escrow storage escrow = escrows[_orderId];
 
-//////////////////////////////////CHECKS///////////////////////////////
-        if (escrow.status != EscrowStatus.Funded){
+        //////////////////////////////////CHECKS///////////////////////////////
+        if (escrow.status != EscrowStatus.Funded) {
             revert EscrowIsNotFunded();
         }
-        if (escrow.seller != msg.sender){
+        if (escrow.seller != msg.sender) {
             revert YouAreNotOwnerOfThisOffer();
         }
-////////////////////////////////EFFECTS////////////////////////////////
+        ////////////////////////////////EFFECTS////////////////////////////////
         escrow.status = EscrowStatus.Cancelled;
 
-///////////////////////////////INTERACTIONS////////////////////////////
-        if(!escrow.escrowNative){
-        escrow.currency.safeTransfer(
-                escrow.seller,
-                escrow.value 
+        ///////////////////////////////INTERACTIONS////////////////////////////
+        if (!escrow.escrowNative) {
+            escrow.currency.safeTransfer(escrow.seller, escrow.value);
+        } else {
+            (bool sellerSent, ) = payable(msg.sender).call{value: escrow.value}(
+                ""
             );
-        }else{
-        (bool sellerSent, ) = payable(msg.sender).call{value: escrow.value}("");
-        require(sellerSent, "Transfer to buyer failed");
+            require(sellerSent, "Transfer to buyer failed");
         }
 
         emit EscrowCancelled(_orderId, escrow);
     }
+
     /**
-    * @dev Refunds the buyer in case of a cancelled contract.
-    * @param _orderId The ID of the escrow.
-    * Requirements:
-    * - The caller must be the contract owner.
-    */
+     * @dev Refunds the buyer in case of a cancelled contract.
+     * @param _orderId The ID of the escrow.
+     * Requirements:
+     * - The caller must be the contract owner.
+     */
     function refundBuyer(uint256 _orderId) external nonReentrant onlyOwner {
         // require(escrows[_orderId].status == EscrowStatus.Refund,"Refund not approved");
 
-        if(escrows[_orderId].status != EscrowStatus.Funded){
+        if (escrows[_orderId].status != EscrowStatus.Funded) {
             revert EscrowIsNotFunded();
         }
 
@@ -402,15 +420,15 @@ function acceptEscrow(uint256 _orderId) external payable nonReentrant {
     }
 
     /**
-    * @dev Refunds the buyer in native coin in case of a cancelled contract.
-    * @param _orderId The ID of the escrow.
-    * Requirements:
-    * - The caller must be the contract owner.
-    */
+     * @dev Refunds the buyer in native coin in case of a cancelled contract.
+     * @param _orderId The ID of the escrow.
+     * Requirements:
+     * - The caller must be the contract owner.
+     */
     function refundBuyerNativeCoin(
         uint256 _orderId
     ) external nonReentrant onlyOwner {
-        if(escrows[_orderId].status != EscrowStatus.Funded){
+        if (escrows[_orderId].status != EscrowStatus.Funded) {
             revert EscrowIsNotFunded();
         }
         uint256 _value = escrows[_orderId].value;
@@ -427,11 +445,11 @@ function acceptEscrow(uint256 _orderId) external payable nonReentrant {
     }
 
     /**
-    * @dev Sets the fee charged to the seller for each transaction.
-    * @param _newFeeSeller The fee percentage (in basis points).
-    * Requirements:
-    * - `_feeSeller` must be between 0 and 1% (inclusive).
-    */
+     * @dev Sets the fee charged to the seller for each transaction.
+     * @param _newFeeSeller The fee percentage (in basis points).
+     * Requirements:
+     * - `_feeSeller` must be between 0 and 1% (inclusive).
+     */
     function setFeeSeller(uint256 _newFeeSeller) public onlyOwner {
         _feeValidation(_newFeeSeller);
         uint256 oldFeeSeller = feeSeller;
@@ -450,18 +468,18 @@ function acceptEscrow(uint256 _orderId) external payable nonReentrant {
         uint256 oldFeeBuyer = feeBuyer;
         feeBuyer = _newFeeBuyer;
         emit BuyerFeeUpdated(oldFeeBuyer, _newFeeBuyer);
-    } 
+    }
 
     /**
-    * @dev Withdraws fees accumulated in a specific currency by the contract owner.
-    * @param _currency The currency token.
-    * Requirements:
-    * - The caller must be the contract owner.
-    */
+     * @dev Withdraws fees accumulated in a specific currency by the contract owner.
+     * @param _currency The currency token.
+     * Requirements:
+     * - The caller must be the contract owner.
+     */
     function withdrawTokenFees(IERC20 _currency) external onlyOwner {
         uint256 _amount = feesAvailable[_currency];
 
-        if(feesAvailable[_currency] <= 0){
+        if (feesAvailable[_currency] <= 0) {
             revert NoFeesToWithdraw();
         }
         // This check also prevents underflow
@@ -475,15 +493,15 @@ function acceptEscrow(uint256 _orderId) external payable nonReentrant {
     }
 
     /**
-    * @dev Withdraws fees accumulated in native coin by the contract owner.
-    * Requirements:
-    * - The caller must be the contract owner.
-    */
+     * @dev Withdraws fees accumulated in native coin by the contract owner.
+     * Requirements:
+     * - The caller must be the contract owner.
+     */
     function withdrawEtherFees() external onlyOwner {
         //_amount = feesAvailable[_currency];
         uint256 _amount = feesAvailableNativeCoin;
 
-        if(_amount <= 0){
+        if (_amount <= 0) {
             revert NoFeesToWithdraw();
         }
         // This check also prevents underflow
@@ -501,8 +519,8 @@ function acceptEscrow(uint256 _orderId) external payable nonReentrant {
     // ================== Begin External functions that are pure ==================
 
     /**
-    * @dev Returns the version of the contract.
-    */
+     * @dev Returns the version of the contract.
+     */
     function version() external pure virtual returns (string memory) {
         return "0.0.3";
     }
@@ -510,50 +528,52 @@ function acceptEscrow(uint256 _orderId) external payable nonReentrant {
     // ================== End External functions that are pure ==================
 
     /// ================== Begin Public functions ==================
-    
+
     /**
-    * @dev Retrieves the escrow details based on the provided escrow ID.
-    * @param escrowId The ID of the escrow.
-    * @return Escrow The details of the escrow.
-    */
-    function getEscrow(uint256 escrowId) public view returns(Escrow memory){
+     * @dev Retrieves the escrow details based on the provided escrow ID.
+     * @param escrowId The ID of the escrow.
+     * @return Escrow The details of the escrow.
+     */
+    function getEscrow(uint256 escrowId) public view returns (Escrow memory) {
         return escrows[escrowId];
     }
+
     /**
-    * @dev Retrieves the status of an escrow based on the provided order ID.
-    * @param _orderId The ID of the order.
-    * @return EscrowStatus The status of the escrow.
-    */
+     * @dev Retrieves the status of an escrow based on the provided order ID.
+     * @param _orderId The ID of the order.
+     * @return EscrowStatus The status of the escrow.
+     */
     function getState(uint256 _orderId) public view returns (EscrowStatus) {
         Escrow memory _escrow = escrows[_orderId];
         return _escrow.status;
     }
 
     /**
-    * @dev Retrieves the value of an escrow based on the provided order ID.
-    * @param _orderId The ID of the order.
-    * @return uint256 The value of the escrow.
-    */
+     * @dev Retrieves the value of an escrow based on the provided order ID.
+     * @param _orderId The ID of the order.
+     * @return uint256 The value of the escrow.
+     */
     function getValue(uint256 _orderId) public view returns (uint256) {
         Escrow memory _escrow = escrows[_orderId];
         return _escrow.value;
     }
+
     /**
-    * @dev Retrieves the type of an escrow based on the provided order ID. Can be native, ETH or with token
-    * @param _orderId The ID of the order.
-    * @return bool The type of the escrow. True for native.
-    */
+     * @dev Retrieves the type of an escrow based on the provided order ID. Can be native, ETH or with token
+     * @param _orderId The ID of the order.
+     * @return bool The type of the escrow. True for native.
+     */
     function isEscrowEther(uint256 _orderId) public view returns (bool) {
         Escrow memory _escrow = escrows[_orderId];
         return _escrow.escrowNative;
     }
 
-   /**
-    * @dev Add the address of the token to the whitelist.
-    * @param _token The address of the token to add to the whitelist.
-    * Requirements:
-    * - `_token` cannot be the zero address.
-    */
+    /**
+     * @dev Add the address of the token to the whitelist.
+     * @param _token The address of the token to add to the whitelist.
+     * Requirements:
+     * - `_token` cannot be the zero address.
+     */
     function addTokenToWhitelist(address _token) public onlyOwner {
         if (_token == address(0)) {
             revert CantBeAddressZero();
@@ -563,9 +583,9 @@ function acceptEscrow(uint256 _orderId) external payable nonReentrant {
     }
 
     /**
-    * @dev Remove the address of the token from the whitelist.
-    * @param _token The address of the token to remove from the whitelist.
-    */
+     * @dev Remove the address of the token from the whitelist.
+     * @param _token The address of the token to remove from the whitelist.
+     */
     function deleteTokenFromWhitelist(address _token) public onlyOwner {
         if (_token == address(0)) {
             revert CantBeAddressZero();
@@ -578,7 +598,10 @@ function acceptEscrow(uint256 _orderId) external payable nonReentrant {
 
     /// ================== Begin Private functions ==================
 
-    function _calculateAmountFee(uint256 _amount, uint256 _fee) private pure returns(uint256) {
+    function _calculateAmountFee(
+        uint256 _amount,
+        uint256 _fee
+    ) private pure returns (uint256) {
         return _amount * _fee;
     }
 
@@ -588,17 +611,21 @@ function acceptEscrow(uint256 _orderId) external payable nonReentrant {
         }
     }
 
-    function _sellerValidation(uint256 _amountToSell, uint256 _price, IERC20 _token) private view {
-        if (!whitelistedStablesAddresses[address(_token)]){
+    function _sellerValidation(
+        uint256 _amountToSell,
+        uint256 _price,
+        IERC20 _token
+    ) private view {
+        if (!whitelistedStablesAddresses[address(_token)]) {
             revert AddressIsNotWhitelisted();
         }
-        if (msg.sender == address(0)){
+        if (msg.sender == address(0)) {
             revert SellerCantBeAddressZero();
         }
         if (_amountToSell <= 0 || _price <= 0) {
             revert ValueMustBeGreaterThan0();
         }
-    }    
+    }
     // /**
     // * @dev Releases the escrowed funds to the seller.
     // * @param _orderId The ID of the order.
@@ -659,7 +686,6 @@ function acceptEscrow(uint256 _orderId) external payable nonReentrant {
     //     if( escrows[_orderId].status != EscrowStatus.Funded){
     //         revert EscrowIsNotFunded();
     //     }
-
 
     //     uint8 _decimals = 6; //Wei
 
