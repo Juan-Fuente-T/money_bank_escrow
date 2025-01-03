@@ -36,7 +36,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ show, onClose, on
           <ul>
             <li>Valor: {offer?.[2].toString()}</li>
             <li>Coste: {offer?.[3].toString()}</li>
-            <p>Tipo: {offer?.[6]? 'ETF': 'UDST'}</p>
+            <p>Tipo: {offer?.[6]? 'ETH': 'UDST'}</p>
             <li>Vendedor: {truncateEthAddress(offer?.[1])}</li>
             <li>Comision: {offer?.[8].toString()}</li>
           </ul>
