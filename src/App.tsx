@@ -10,11 +10,11 @@ import LoadingSpinner from "./utils/LoadingSpinner";
 import ModalResumen from './components/ModalResumen';
 import FormularioOferta from './components/FormularioOferta'
 import OfferCard from "./components/OfferCard";
-import { useAccount, useBalance, useProvider } from 'wagmi'
+import { useAccount, useBalance } from 'wagmi'
 import { usePrices } from './hooks/usePrices';
 import useFees from "./hooks/useFees";
 import { useEscrow } from "./hooks/useEscrow";
-import { useContract, useSigner } from 'wagmi';
+import { useFundUser } from "./hooks/useFundUser";
 
 // Importaciones TEMPORALMENTE en deshuso
 // import truncateEthAddress from 'truncate-eth-address';
@@ -24,6 +24,7 @@ import { useContract, useSigner } from 'wagmi';
 // Estilos 
 import "./App.css";
 import 'react-toastify/dist/ReactToastify.css';
+import { sign } from "crypto";
 
 // Extensión de la interfaz Window para incluir ethereum como una propiedad opcional
 declare global {
@@ -56,12 +57,15 @@ export default function Home() {
   const [feeBuyer, setFeeBuyer] = useState<number>(0);
   const [feeSeller, setFeeSeller] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [signer, setSigner] = useState<ethers.JsonRpcSigner | null>(null);
   // const { runTask } = useAsyncTask();
 
   const { address: _address } = useAccount();
   const { data, isError } = useBalance({ address: _address });
   const { fees, fetchFees } = useFees(contract);
   let prices: { [key: string]: { precio: number; nombre: string; } } = {};
+  const { createEscrow, cancelEscrow, acceptEscrow } = useEscrow(contract, tokenContract, signer);
+  const { fundUser } = useFundUser(tokenContract, signer);
 
 
  /** 
@@ -82,6 +86,7 @@ export default function Home() {
         if (typeof window.ethereum !== 'undefined' && address) {
           const provider = new ethers.BrowserProvider(window.ethereum);
           const signer = await provider.getSigner();
+          if(signer) setSigner(signer);
           const newContract = new ethers.Contract(CONTRACT_ADDRESS, MoneybankABI, signer);
           setContract(newContract);
           const tokenContract = new ethers.Contract(USDTAddress, USDTABI, signer);
@@ -120,9 +125,9 @@ export default function Home() {
     } else {
       setLoggedIn(false);
     }
-  }, [_address, data, isError, fetchFees, fees.feeBuyer, fees.feeSeller]);
+  }, [_address, data, isError, fetchFees, fees.feeBuyer, fees.feeSeller, ethBalance]);
 
-  /** 
+ /** 
  * Retrieves cryptocurrency prices and transforms them into a manageable object.
  * The prices are used for conversions between ETH and USDT.
  */
@@ -148,8 +153,22 @@ export default function Home() {
   const valorEthEnUsd = ethPrecio * usdtPrecio;
   const valorUsdEnEth = usdtPrecio / ethPrecio;
 
-  const { createEscrow, cancelEscrow, acceptEscrow } = useEscrow(contract, tokenContract);
  
+  async function handleFundUser(amount: string, userAddress: string) {
+  
+    // setTimeout(() => {
+    //   setIsLoading(true);
+    // }, 1000);
+    setIsLoading(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await fundUser(amount, userAddress);
+    } catch (error) {
+      console.error("Error al enviar USDT al usuario:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
   /**
    * Handles the creation of a new escrow by interacting with the smart contract.
    * Fetches updated offers and resets the form after successful creation.
@@ -167,7 +186,6 @@ export default function Home() {
     setIsLoading(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 0));
-      console.log("ISLOADING1", isLoading);
       await createEscrow(value, price, isEthOffer);
       fetchOffers();
       handleCloseForm();
@@ -187,7 +205,6 @@ export default function Home() {
   async function handleCancelEscrow(offerId: number) {
     setIsLoading(true);
     try {
-      console.log("ISLOADING1", isLoading);
       await cancelEscrow(offerId);
       fetchOffers();
       handleCloseForm();
@@ -436,6 +453,10 @@ export default function Home() {
                 {prices && <p>1 USDT in ETH: {' '}{valorUsdEnEth}</p>}
               </div>
             </div>
+            <div className="fund-container">
+              <h3>Obten USDT de prueba si no dispones de él: </h3>
+              {balanceOf < 10 ? <button className="fund-button" onClick={() => handleFundUser('100', address)}>Recibir 100 USDT</button>: <p>Tienes suficientes USDT para probar</p>}
+            </div>
             <div className="styles.containerData">
               <div>
                 <div className="app-offers-container">
@@ -518,7 +539,7 @@ export default function Home() {
               {/* {address && address.toLowerCase() === owner?.toLowerCase() ? (
                 <div>
                    {isLoading ? (
-                  <button className="button">Loading...</button>
+                  <p className="p-loading">Loading...</p>
                 ) : (<div>
                 <div> 
                   <div className="containerRefunds">

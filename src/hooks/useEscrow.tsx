@@ -3,6 +3,7 @@ import { useState } from "react";
 import { CONTRACT_ADDRESS } from "../assets/constants";
 import { USDTAddress } from "../assets/constants";
 import { toast } from "react-toastify";
+import { Signer } from "viem/_types/experimental/erc7715/types/signer";
 
 /**
  * Manages the creation, cancellation, and acceptance of escrows using the contract and token contract provided.
@@ -11,16 +12,16 @@ import { toast } from "react-toastify";
  * @param {Contract | null} tokenContract - The token contract instance.
  * @return {object} Functions to create, cancel, and accept escrows.
  */
-export function useEscrow(contract: Contract | null, tokenContract: Contract | null) {
+export function useEscrow(contract: Contract | null, tokenContract: Contract | null, signer: any | null) {
 
-    /**
-   * Creates an escrow using USDT tokens.
-   *
-   * @param {string} value - The amount of USDT tokens for the escrow.
-   * @param {string} price - The price in USDT for the escrow (per ETH or native token).
-   * @param {boolean} isEthOffer - Indicates if the escrow is in ETH or USDT.
-   * @throws Will throw an error if any parameter is invalid or if transaction fails.
-   */
+  /**
+ * Creates an escrow using USDT tokens.
+ *
+ * @param {string} value - The amount of USDT tokens for the escrow.
+ * @param {string} price - The price in USDT for the escrow (per ETH or native token).
+ * @param {boolean} isEthOffer - Indicates if the escrow is in ETH or USDT.
+ * @throws Will throw an error if any parameter is invalid or if transaction fails.
+ */
   const createEscrow = async (value: string, price: string, isEthOffer: boolean) => {
     // setIsLoading(true);
     // Codificacion de firmas para llamadas a funciones, A IMPLEMENTAR
@@ -39,8 +40,6 @@ export function useEscrow(contract: Contract | null, tokenContract: Contract | n
         // Convierte los valores entrantes como strings para evitar problemas de precisión
         const valueParsed = parseFloat(value.trim());
         const priceParsed = parseFloat(price.trim());
-        // console.log("valueParsed", valueParsed);
-        // console.log("priceParsed", priceParsed);
 
         // Validar que tanto el valor como el precio sean mayores que cero
         if (valueParsed <= 0 || priceParsed <= 0) {
@@ -68,13 +67,24 @@ export function useEscrow(contract: Contract | null, tokenContract: Contract | n
         const addApproveTokenTx = await tokenContract?.approve(CONTRACT_ADDRESS, usdtAmountBN, {
           gasLimit: 5000000,
         });
-        await addApproveTokenTx.wait();
-
+        const nonce = Date.now()
+        const message = ethers.solidityPackedKeccak256(
+          ['uint256', 'uint256', 'address', 'uint256'],
+          [usdtAmountBN, ethAmountBN, USDTAddress, nonce]
+        );
+        const messageBytes = ethers.getBytes(message);
+        const signature = signer?.signMessage(messageBytes);
         //Creación del escrow de usdt
         // const receipt = await waitForTransaction(addEscrowTokenTx);
-        const addEscrowTokenTx = await contract.createEscrowToken(usdtAmountBN, ethAmountBN, USDTAddress, {
-          gasLimit: 5000000,
-        });
+        const addEscrowTokenTx = await contract.createEscrowToken(
+          usdtAmountBN,
+          ethAmountBN,
+          USDTAddress,
+          nonce,
+          signature,
+          {
+            gasLimit: 5000000,
+          });
         await addEscrowTokenTx.wait();
         toast.success("Se ha creado la oferta USDT exitosamente");
       } catch (error) {
@@ -108,12 +118,25 @@ export function useEscrow(contract: Contract | null, tokenContract: Contract | n
         // Convertir a BigNumber para usar en las transacciones
         const ethAmountBN = ethers.parseEther(value);
         const totalUsdtBN = ethers.parseUnits(totalUsdtRounded.toString(), 6);
+        const nonce = Date.now()
+        const message = ethers.solidityPackedKeccak256(
+          ['uint256', 'uint256', 'address', 'uint256'],
+          [ethAmountBN, totalUsdtBN, USDTAddress, nonce]
+        );
+        const messageBytes = ethers.getBytes(message);
+        const signature = signer?.signMessage(messageBytes);
         // Realiza la transacción para crear el escrow con Ether nativo
-        const addEscrowNativeTx = await contract?.createEscrowNativeCoin(ethAmountBN, totalUsdtBN, USDTAddress, {
+        const addEscrowNativeTx = await contract?.createEscrowNativeCoin(
+          ethAmountBN,
+          totalUsdtBN, 
+          USDTAddress,
+          nonce,
+          signature,
+          {
           gasLimit: 5000000, value: ethAmountBN
         });
         await addEscrowNativeTx.wait();
-        toast("Se ha creado la oferta ETH exitosamente");
+        toast.success("Se ha creado la oferta ETH exitosamente");
       } catch (error) {
         console.error("Error creando la oferta de native coin:", error);;
         toast.error("No se ha podido crear la oferta ETH");
@@ -129,10 +152,21 @@ export function useEscrow(contract: Contract | null, tokenContract: Contract | n
    * @throws Will throw an error if the offer ID is not defined or if the transaction fails.
    */
   const cancelEscrow = async (offerId: number) => {
+    if (!contract || !tokenContract) throw new Error("Contract not found");
     if (!offerId) throw new Error("Offer ID no definido");
     try {
-      if (!contract || !tokenContract) throw new Error("Contract not found");
-      const cancelTx = await contract?.cancelEscrow(offerId, {
+      const nonce = Date.now()
+      const message = ethers.solidityPackedKeccak256(
+        ['uint256', 'uint256'],
+        [offerId, nonce]
+      );
+      const messageBytes = ethers.getBytes(message);
+      const signature = signer?.signMessage(messageBytes);
+      const cancelTx = await contract?.cancelEscrow(
+        offerId,
+        nonce,
+        signature,
+        {
         gasLimit: 5000000,
       });
       await cancelTx.wait();
@@ -160,14 +194,26 @@ export function useEscrow(contract: Contract | null, tokenContract: Contract | n
     // console.log("SIGNATURE", signature);
 
     // Verifica si el contrato está inicializado
+    if (!contract || !tokenContract) throw new Error("Contract not found");
     if (!offerId || !cost) {
       throw new Error("Offer ID or cost no defined");
     }
     if (!isEthOffer) {
       try {
+        const nonce = Date.now()
+        const message = ethers.solidityPackedKeccak256(
+          ['uint256', 'uint256'],
+          [offerId, nonce]
+        );
+        const messageBytes = ethers.getBytes(message);
+        const signature = signer?.signMessage(messageBytes);
         // Realiza la transacción para aceptar el escrow con tokens USDT
         // const receipt = await waitForTransaction(addEscrowTokenTx);
-        const acceptEscrowTokenTx = await contract?.acceptEscrowToken(parseInt(offerId.toString()), {
+        const acceptEscrowTokenTx = await contract?.acceptEscrowToken(
+          parseInt(offerId.toString()), 
+          nonce,
+          signature,
+          {
           gasLimit: 5000000,
           value: cost
         });
@@ -185,13 +231,24 @@ export function useEscrow(contract: Contract | null, tokenContract: Contract | n
           gasLimit: 5000000,
         });
         await addApproveTokenTx.wait();
+        const nonce = Date.now()
+        const message = ethers.solidityPackedKeccak256(
+          ['uint256', 'uint256'],
+          [offerId, nonce]
+        );
+        const messageBytes = ethers.getBytes(message);
+        const signature = signer?.signMessage(messageBytes);
         //Aceptar el escrow con Ether nativo 
         // const addEscrowTokenTx = await contract.acceptEscrowNativeCoin(address, hash, signature, parseInt(_orderId.toString()) {
-        const acceptEscrowNativeTx = await contract?.acceptEscrowNativeCoin(offerId, {
+        const acceptEscrowNativeTx = await contract?.acceptEscrowNativeCoin(
+          parseInt(offerId.toString()), 
+          nonce,
+          signature,
+          {
           gasLimit: 5000000
         });
         await acceptEscrowNativeTx.wait();
-        toast("Se ha aceptado la oferta ETH exitosamente");
+        toast.success("Se ha aceptado la oferta ETH exitosamente");
       } catch (error) {
         toast.error("No se ha podido aceptar la oferta ETH");
         console.error("Error aceptando la oferta de native coin:", error);

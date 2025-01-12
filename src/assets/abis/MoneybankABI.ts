@@ -1,817 +1,1071 @@
 export const MoneybankABI = [
 	{
-		"inputs": [],
-		"name": "AddressIsNotWhitelisted",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "BuyerApproveEscrowFirst",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "CantBeAddressZero",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "EscrowIsNotFunded",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "FeeCanBeFrom0to1Percent",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "IncorretAmount",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "NoFeesToWithdraw",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "SellerApproveEscrowFirst",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "SellerCantBeAddressZero",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "SellerCantBeTheSameAsBuyer",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "ValueMustBeGreaterThan0",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "YouAreNotOwnerOfThisOffer",
-		"type": "error"
-	},
-	{
-		"anonymous": false,
+		"type": "constructor",
 		"inputs": [
 			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "orderId",
-				"type": "uint256"
-			},
-			{
-				"components": [
-					{
-						"internalType": "address payable",
-						"name": "buyer",
-						"type": "address"
-					},
-					{
-						"internalType": "address payable",
-						"name": "seller",
-						"type": "address"
-					},
-					{
-						"internalType": "uint256",
-						"name": "value",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "cost",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "sellerfee",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "buyerfee",
-						"type": "uint256"
-					},
-					{
-						"internalType": "bool",
-						"name": "escrowNative",
-						"type": "bool"
-					},
-					{
-						"internalType": "contract IERC20",
-						"name": "currency",
-						"type": "address"
-					},
-					{
-						"internalType": "enum Towerbank.EscrowStatus",
-						"name": "status",
-						"type": "uint8"
-					}
-				],
-				"indexed": false,
-				"internalType": "struct Towerbank.Escrow",
-				"name": "escrow",
-				"type": "tuple"
+				"name": "currency",
+				"type": "address",
+				"internalType": "address"
 			}
 		],
-		"name": "EscrowCancelled",
-		"type": "event"
+		"stateMutability": "nonpayable"
 	},
 	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "orderId",
-				"type": "uint256"
-			},
-			{
-				"components": [
-					{
-						"internalType": "address payable",
-						"name": "buyer",
-						"type": "address"
-					},
-					{
-						"internalType": "address payable",
-						"name": "seller",
-						"type": "address"
-					},
-					{
-						"internalType": "uint256",
-						"name": "value",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "cost",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "sellerfee",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "buyerfee",
-						"type": "uint256"
-					},
-					{
-						"internalType": "bool",
-						"name": "escrowNative",
-						"type": "bool"
-					},
-					{
-						"internalType": "contract IERC20",
-						"name": "currency",
-						"type": "address"
-					},
-					{
-						"internalType": "enum Towerbank.EscrowStatus",
-						"name": "status",
-						"type": "uint8"
-					}
-				],
-				"indexed": false,
-				"internalType": "struct Towerbank.Escrow",
-				"name": "escrow",
-				"type": "tuple"
-			}
-		],
-		"name": "EscrowComplete",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "orderId",
-				"type": "uint256"
-			},
-			{
-				"components": [
-					{
-						"internalType": "address payable",
-						"name": "buyer",
-						"type": "address"
-					},
-					{
-						"internalType": "address payable",
-						"name": "seller",
-						"type": "address"
-					},
-					{
-						"internalType": "uint256",
-						"name": "value",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "cost",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "sellerfee",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "buyerfee",
-						"type": "uint256"
-					},
-					{
-						"internalType": "bool",
-						"name": "escrowNative",
-						"type": "bool"
-					},
-					{
-						"internalType": "contract IERC20",
-						"name": "currency",
-						"type": "address"
-					},
-					{
-						"internalType": "enum Towerbank.EscrowStatus",
-						"name": "status",
-						"type": "uint8"
-					}
-				],
-				"indexed": false,
-				"internalType": "struct Towerbank.Escrow",
-				"name": "escrow",
-				"type": "tuple"
-			}
-		],
-		"name": "EscrowDeposit",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "orderId",
-				"type": "uint256"
-			}
-		],
-		"name": "EscrowDisputeResolved",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "previousOwner",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "OwnershipTransferred",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_orderId",
-				"type": "uint256"
-			}
-		],
+		"type": "function",
 		"name": "acceptEscrow",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
 		"inputs": [
 			{
-				"internalType": "uint256",
 				"name": "_orderId",
-				"type": "uint256"
+				"type": "uint256",
+				"internalType": "uint256"
+			},
+			{
+				"name": "nonce",
+				"type": "uint256",
+				"internalType": "uint256"
+			},
+			{
+				"name": "signature",
+				"type": "bytes",
+				"internalType": "bytes"
 			}
 		],
-		"name": "acceptEscrowNativeCoin",
 		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
+		"stateMutability": "payable"
 	},
 	{
+		"type": "function",
+		"name": "addTokenToWhitelist",
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "_orderId",
-				"type": "uint256"
+				"name": "_token",
+				"type": "address",
+				"internalType": "address"
+			},
+			{
+				"name": "nonce",
+				"type": "uint256",
+				"internalType": "uint256"
+			},
+			{
+				"name": "signature",
+				"type": "bytes",
+				"internalType": "bytes"
 			}
 		],
-		"name": "acceptEscrowToken",
 		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
+		"stateMutability": "nonpayable"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_addressStableToWhitelist",
-				"type": "address"
-			}
-		],
-		"name": "addStablesAddresses",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_orderId",
-				"type": "uint256"
-			}
-		],
+		"type": "function",
 		"name": "cancelEscrow",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "_value",
-				"type": "uint256"
+				"name": "_orderId",
+				"type": "uint256",
+				"internalType": "uint256"
 			},
 			{
-				"internalType": "uint256",
-				"name": "_cost",
-				"type": "uint256"
+				"name": "nonce",
+				"type": "uint256",
+				"internalType": "uint256"
 			},
 			{
-				"internalType": "contract IERC20",
-				"name": "_currency",
-				"type": "address"
+				"name": "signature",
+				"type": "bytes",
+				"internalType": "bytes"
 			}
 		],
+		"outputs": [],
+		"stateMutability": "nonpayable"
+	},
+	{
+		"type": "function",
 		"name": "createEscrowNativeCoin",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
 		"inputs": [
 			{
-				"internalType": "uint256",
 				"name": "_value",
-				"type": "uint256"
+				"type": "uint256",
+				"internalType": "uint256"
 			},
 			{
-				"internalType": "uint256",
 				"name": "_cost",
-				"type": "uint256"
+				"type": "uint256",
+				"internalType": "uint256"
 			},
 			{
-				"internalType": "contract IERC20",
 				"name": "_currency",
-				"type": "address"
+				"type": "address",
+				"internalType": "contract IERC20"
+			},
+			{
+				"name": "nonce",
+				"type": "uint256",
+				"internalType": "uint256"
+			},
+			{
+				"name": "signature",
+				"type": "bytes",
+				"internalType": "bytes"
 			}
 		],
+		"outputs": [],
+		"stateMutability": "payable"
+	},
+	{
+		"type": "function",
 		"name": "createEscrowToken",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"inputs": [
 			{
-				"internalType": "address",
-				"name": "_addressStableToWhitelist",
-				"type": "address"
-			}
-		],
-		"name": "delStablesAddresses",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
+				"name": "_value",
+				"type": "uint256",
+				"internalType": "uint256"
+			},
 			{
-				"internalType": "uint256",
-				"name": "_orderId",
-				"type": "uint256"
-			}
-		],
-		"name": "refundBuyer",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
+				"name": "_cost",
+				"type": "uint256",
+				"internalType": "uint256"
+			},
 			{
-				"internalType": "uint256",
-				"name": "_orderId",
-				"type": "uint256"
-			}
-		],
-		"name": "refundBuyerNativeCoin",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "renounceOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_feeBuyer",
-				"type": "uint256"
-			}
-		],
-		"name": "setFeeBuyer",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_feeSeller",
-				"type": "uint256"
-			}
-		],
-		"name": "setFeeSeller",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "transferOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "contract IERC20",
 				"name": "_currency",
-				"type": "address"
+				"type": "address",
+				"internalType": "contract IERC20"
+			},
+			{
+				"name": "nonce",
+				"type": "uint256",
+				"internalType": "uint256"
+			},
+			{
+				"name": "signature",
+				"type": "bytes",
+				"internalType": "bytes"
 			}
 		],
-		"name": "withdrawFees",
 		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
+		"stateMutability": "nonpayable"
 	},
 	{
-		"inputs": [],
-		"name": "withdrawFeesNativeCoin",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
+		"type": "function",
+		"name": "deleteTokenFromWhitelist",
 		"inputs": [
 			{
-				"internalType": "address",
-				"name": "currency",
-				"type": "address"
+				"name": "_token",
+				"type": "address",
+				"internalType": "address"
+			},
+			{
+				"name": "nonce",
+				"type": "uint256",
+				"internalType": "uint256"
+			},
+			{
+				"name": "signature",
+				"type": "bytes",
+				"internalType": "bytes"
 			}
 		],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
+		"outputs": [],
+		"stateMutability": "nonpayable"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
+		"type": "function",
 		"name": "escrows",
+		"inputs": [
+			{
+				"name": "",
+				"type": "uint256",
+				"internalType": "uint256"
+			}
+		],
 		"outputs": [
 			{
-				"internalType": "address payable",
 				"name": "buyer",
-				"type": "address"
+				"type": "address",
+				"internalType": "address payable"
 			},
 			{
-				"internalType": "address payable",
 				"name": "seller",
-				"type": "address"
+				"type": "address",
+				"internalType": "address payable"
 			},
 			{
-				"internalType": "uint256",
 				"name": "value",
-				"type": "uint256"
+				"type": "uint256",
+				"internalType": "uint256"
 			},
 			{
-				"internalType": "uint256",
 				"name": "cost",
-				"type": "uint256"
+				"type": "uint256",
+				"internalType": "uint256"
 			},
 			{
-				"internalType": "uint256",
 				"name": "sellerfee",
-				"type": "uint256"
+				"type": "uint256",
+				"internalType": "uint256"
 			},
 			{
-				"internalType": "uint256",
 				"name": "buyerfee",
-				"type": "uint256"
+				"type": "uint256",
+				"internalType": "uint256"
 			},
 			{
-				"internalType": "bool",
 				"name": "escrowNative",
-				"type": "bool"
+				"type": "bool",
+				"internalType": "bool"
 			},
 			{
-				"internalType": "contract IERC20",
 				"name": "currency",
-				"type": "address"
+				"type": "address",
+				"internalType": "contract IERC20"
 			},
 			{
-				"internalType": "enum Towerbank.EscrowStatus",
 				"name": "status",
-				"type": "uint8"
+				"type": "uint8",
+				"internalType": "enum Moneybank.EscrowStatus"
 			}
 		],
-		"stateMutability": "view",
-		"type": "function"
+		"stateMutability": "view"
 	},
 	{
-		"inputs": [],
+		"type": "function",
 		"name": "feeBuyer",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "contract IERC20",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "feesAvailable",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
 		"inputs": [],
-		"name": "feesAvailableNativeCoin",
 		"outputs": [
 			{
-				"internalType": "uint256",
 				"name": "",
-				"type": "uint256"
+				"type": "uint256",
+				"internalType": "uint256"
 			}
 		],
-		"stateMutability": "view",
-		"type": "function"
+		"stateMutability": "view"
 	},
 	{
-		"inputs": [],
+		"type": "function",
 		"name": "feeSeller",
+		"inputs": [],
 		"outputs": [
 			{
-				"internalType": "uint256",
 				"name": "",
-				"type": "uint256"
+				"type": "uint256",
+				"internalType": "uint256"
 			}
 		],
-		"stateMutability": "view",
-		"type": "function"
+		"stateMutability": "view"
 	},
 	{
+		"type": "function",
+		"name": "feesAvailable",
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "escrowId",
-				"type": "uint256"
+				"name": "",
+				"type": "address",
+				"internalType": "contract IERC20"
 			}
 		],
-		"name": "getEscrow",
 		"outputs": [
 			{
+				"name": "",
+				"type": "uint256",
+				"internalType": "uint256"
+			}
+		],
+		"stateMutability": "view"
+	},
+	{
+		"type": "function",
+		"name": "feesAvailableNativeCoin",
+		"inputs": [],
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256",
+				"internalType": "uint256"
+			}
+		],
+		"stateMutability": "view"
+	},
+	{
+		"type": "function",
+		"name": "fundUser",
+		"inputs": [
+			{
+				"name": "_user",
+				"type": "address",
+				"internalType": "address"
+			},
+			{
+				"name": "_amount",
+				"type": "uint256",
+				"internalType": "uint256"
+			},
+			{
+				"name": "nonce",
+				"type": "uint256",
+				"internalType": "uint256"
+			},
+			{
+				"name": "signature",
+				"type": "bytes",
+				"internalType": "bytes"
+			}
+		],
+		"outputs": [],
+		"stateMutability": "nonpayable"
+	},
+	{
+		"type": "function",
+		"name": "getEscrow",
+		"inputs": [
+			{
+				"name": "escrowId",
+				"type": "uint256",
+				"internalType": "uint256"
+			}
+		],
+		"outputs": [
+			{
+				"name": "",
+				"type": "tuple",
+				"internalType": "struct Moneybank.Escrow",
 				"components": [
 					{
-						"internalType": "address payable",
 						"name": "buyer",
-						"type": "address"
+						"type": "address",
+						"internalType": "address payable"
 					},
 					{
-						"internalType": "address payable",
 						"name": "seller",
-						"type": "address"
+						"type": "address",
+						"internalType": "address payable"
 					},
 					{
-						"internalType": "uint256",
 						"name": "value",
-						"type": "uint256"
+						"type": "uint256",
+						"internalType": "uint256"
 					},
 					{
-						"internalType": "uint256",
 						"name": "cost",
-						"type": "uint256"
+						"type": "uint256",
+						"internalType": "uint256"
 					},
 					{
-						"internalType": "uint256",
 						"name": "sellerfee",
-						"type": "uint256"
+						"type": "uint256",
+						"internalType": "uint256"
 					},
 					{
-						"internalType": "uint256",
 						"name": "buyerfee",
-						"type": "uint256"
+						"type": "uint256",
+						"internalType": "uint256"
 					},
 					{
-						"internalType": "bool",
 						"name": "escrowNative",
-						"type": "bool"
+						"type": "bool",
+						"internalType": "bool"
 					},
 					{
-						"internalType": "contract IERC20",
 						"name": "currency",
-						"type": "address"
+						"type": "address",
+						"internalType": "contract IERC20"
 					},
 					{
-						"internalType": "enum Towerbank.EscrowStatus",
 						"name": "status",
-						"type": "uint8"
+						"type": "uint8",
+						"internalType": "enum Moneybank.EscrowStatus"
 					}
-				],
-				"internalType": "struct Towerbank.Escrow",
-				"name": "",
-				"type": "tuple"
+				]
 			}
 		],
-		"stateMutability": "view",
-		"type": "function"
+		"stateMutability": "view"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_orderId",
-				"type": "uint256"
-			}
-		],
+		"type": "function",
 		"name": "getState",
-		"outputs": [
-			{
-				"internalType": "enum Towerbank.EscrowStatus",
-				"name": "",
-				"type": "uint8"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
 		"inputs": [
 			{
-				"internalType": "uint256",
 				"name": "_orderId",
-				"type": "uint256"
+				"type": "uint256",
+				"internalType": "uint256"
 			}
 		],
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint8",
+				"internalType": "enum Moneybank.EscrowStatus"
+			}
+		],
+		"stateMutability": "view"
+	},
+	{
+		"type": "function",
+		"name": "getTokenBalance",
+		"inputs": [
+			{
+				"name": "_user",
+				"type": "address",
+				"internalType": "address"
+			}
+		],
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256",
+				"internalType": "uint256"
+			}
+		],
+		"stateMutability": "view"
+	},
+	{
+		"type": "function",
 		"name": "getValue",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
 		"inputs": [
 			{
-				"internalType": "uint256",
 				"name": "_orderId",
-				"type": "uint256"
+				"type": "uint256",
+				"internalType": "uint256"
 			}
 		],
-		"name": "isEscrowNative",
 		"outputs": [
 			{
-				"internalType": "bool",
 				"name": "",
-				"type": "bool"
+				"type": "uint256",
+				"internalType": "uint256"
 			}
 		],
-		"stateMutability": "view",
-		"type": "function"
+		"stateMutability": "view"
 	},
 	{
-		"inputs": [],
-		"name": "orderId",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "owner",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "version",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "",
-				"type": "string"
-			}
-		],
-		"stateMutability": "pure",
-		"type": "function"
-	},
-	{
+		"type": "function",
+		"name": "isEscrowEther",
 		"inputs": [
 			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
+				"name": "_orderId",
+				"type": "uint256",
+				"internalType": "uint256"
 			}
 		],
-		"name": "whitelistedStablesAddresses",
 		"outputs": [
 			{
-				"internalType": "bool",
 				"name": "",
-				"type": "bool"
+				"type": "bool",
+				"internalType": "bool"
 			}
 		],
-		"stateMutability": "view",
-		"type": "function"
+		"stateMutability": "view"
+	},
+	{
+		"type": "function",
+		"name": "orderId",
+		"inputs": [],
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256",
+				"internalType": "uint256"
+			}
+		],
+		"stateMutability": "view"
+	},
+	{
+		"type": "function",
+		"name": "owner",
+		"inputs": [],
+		"outputs": [
+			{
+				"name": "",
+				"type": "address",
+				"internalType": "address"
+			}
+		],
+		"stateMutability": "view"
+	},
+	{
+		"type": "function",
+		"name": "refundBuyer",
+		"inputs": [
+			{
+				"name": "_orderId",
+				"type": "uint256",
+				"internalType": "uint256"
+			},
+			{
+				"name": "nonce",
+				"type": "uint256",
+				"internalType": "uint256"
+			},
+			{
+				"name": "signature",
+				"type": "bytes",
+				"internalType": "bytes"
+			}
+		],
+		"outputs": [],
+		"stateMutability": "nonpayable"
+	},
+	{
+		"type": "function",
+		"name": "refundBuyerNativeCoin",
+		"inputs": [
+			{
+				"name": "_orderId",
+				"type": "uint256",
+				"internalType": "uint256"
+			},
+			{
+				"name": "nonce",
+				"type": "uint256",
+				"internalType": "uint256"
+			},
+			{
+				"name": "signature",
+				"type": "bytes",
+				"internalType": "bytes"
+			}
+		],
+		"outputs": [],
+		"stateMutability": "nonpayable"
+	},
+	{
+		"type": "function",
+		"name": "renounceOwnership",
+		"inputs": [],
+		"outputs": [],
+		"stateMutability": "nonpayable"
+	},
+	{
+		"type": "function",
+		"name": "setFeeBuyer",
+		"inputs": [
+			{
+				"name": "_newFeeBuyer",
+				"type": "uint256",
+				"internalType": "uint256"
+			},
+			{
+				"name": "nonce",
+				"type": "uint256",
+				"internalType": "uint256"
+			},
+			{
+				"name": "signature",
+				"type": "bytes",
+				"internalType": "bytes"
+			}
+		],
+		"outputs": [],
+		"stateMutability": "nonpayable"
+	},
+	{
+		"type": "function",
+		"name": "setFeeSeller",
+		"inputs": [
+			{
+				"name": "_newFeeSeller",
+				"type": "uint256",
+				"internalType": "uint256"
+			},
+			{
+				"name": "nonce",
+				"type": "uint256",
+				"internalType": "uint256"
+			},
+			{
+				"name": "signature",
+				"type": "bytes",
+				"internalType": "bytes"
+			}
+		],
+		"outputs": [],
+		"stateMutability": "nonpayable"
+	},
+	{
+		"type": "function",
+		"name": "token",
+		"inputs": [],
+		"outputs": [
+			{
+				"name": "",
+				"type": "address",
+				"internalType": "contract IERC20"
+			}
+		],
+		"stateMutability": "view"
+	},
+	{
+		"type": "function",
+		"name": "transferOwnership",
+		"inputs": [
+			{
+				"name": "newOwner",
+				"type": "address",
+				"internalType": "address"
+			}
+		],
+		"outputs": [],
+		"stateMutability": "nonpayable"
+	},
+	{
+		"type": "function",
+		"name": "version",
+		"inputs": [],
+		"outputs": [
+			{
+				"name": "",
+				"type": "string",
+				"internalType": "string"
+			}
+		],
+		"stateMutability": "pure"
+	},
+	{
+		"type": "function",
+		"name": "whitelistedStablesAddresses",
+		"inputs": [
+			{
+				"name": "",
+				"type": "address",
+				"internalType": "address"
+			}
+		],
+		"outputs": [
+			{
+				"name": "",
+				"type": "bool",
+				"internalType": "bool"
+			}
+		],
+		"stateMutability": "view"
+	},
+	{
+		"type": "function",
+		"name": "withdrawEtherFees",
+		"inputs": [],
+		"outputs": [],
+		"stateMutability": "nonpayable"
+	},
+	{
+		"type": "function",
+		"name": "withdrawTokenFees",
+		"inputs": [
+			{
+				"name": "_currency",
+				"type": "address",
+				"internalType": "contract IERC20"
+			},
+			{
+				"name": "nonce",
+				"type": "uint256",
+				"internalType": "uint256"
+			},
+			{
+				"name": "signature",
+				"type": "bytes",
+				"internalType": "bytes"
+			}
+		],
+		"outputs": [],
+		"stateMutability": "nonpayable"
+	},
+	{
+		"type": "event",
+		"name": "BuyerFeeUpdated",
+		"inputs": [
+			{
+				"name": "oldFeeBuyer",
+				"type": "uint256",
+				"indexed": true,
+				"internalType": "uint256"
+			},
+			{
+				"name": "newFeeBuyer",
+				"type": "uint256",
+				"indexed": true,
+				"internalType": "uint256"
+			}
+		],
+		"anonymous": false
+	},
+	{
+		"type": "event",
+		"name": "EscrowCancelled",
+		"inputs": [
+			{
+				"name": "orderId",
+				"type": "uint256",
+				"indexed": true,
+				"internalType": "uint256"
+			},
+			{
+				"name": "escrow",
+				"type": "tuple",
+				"indexed": false,
+				"internalType": "struct Moneybank.Escrow",
+				"components": [
+					{
+						"name": "buyer",
+						"type": "address",
+						"internalType": "address payable"
+					},
+					{
+						"name": "seller",
+						"type": "address",
+						"internalType": "address payable"
+					},
+					{
+						"name": "value",
+						"type": "uint256",
+						"internalType": "uint256"
+					},
+					{
+						"name": "cost",
+						"type": "uint256",
+						"internalType": "uint256"
+					},
+					{
+						"name": "sellerfee",
+						"type": "uint256",
+						"internalType": "uint256"
+					},
+					{
+						"name": "buyerfee",
+						"type": "uint256",
+						"internalType": "uint256"
+					},
+					{
+						"name": "escrowNative",
+						"type": "bool",
+						"internalType": "bool"
+					},
+					{
+						"name": "currency",
+						"type": "address",
+						"internalType": "contract IERC20"
+					},
+					{
+						"name": "status",
+						"type": "uint8",
+						"internalType": "enum Moneybank.EscrowStatus"
+					}
+				]
+			}
+		],
+		"anonymous": false
+	},
+	{
+		"type": "event",
+		"name": "EscrowComplete",
+		"inputs": [
+			{
+				"name": "orderId",
+				"type": "uint256",
+				"indexed": true,
+				"internalType": "uint256"
+			},
+			{
+				"name": "escrow",
+				"type": "tuple",
+				"indexed": false,
+				"internalType": "struct Moneybank.Escrow",
+				"components": [
+					{
+						"name": "buyer",
+						"type": "address",
+						"internalType": "address payable"
+					},
+					{
+						"name": "seller",
+						"type": "address",
+						"internalType": "address payable"
+					},
+					{
+						"name": "value",
+						"type": "uint256",
+						"internalType": "uint256"
+					},
+					{
+						"name": "cost",
+						"type": "uint256",
+						"internalType": "uint256"
+					},
+					{
+						"name": "sellerfee",
+						"type": "uint256",
+						"internalType": "uint256"
+					},
+					{
+						"name": "buyerfee",
+						"type": "uint256",
+						"internalType": "uint256"
+					},
+					{
+						"name": "escrowNative",
+						"type": "bool",
+						"internalType": "bool"
+					},
+					{
+						"name": "currency",
+						"type": "address",
+						"internalType": "contract IERC20"
+					},
+					{
+						"name": "status",
+						"type": "uint8",
+						"internalType": "enum Moneybank.EscrowStatus"
+					}
+				]
+			}
+		],
+		"anonymous": false
+	},
+	{
+		"type": "event",
+		"name": "EscrowDeposit",
+		"inputs": [
+			{
+				"name": "orderId",
+				"type": "uint256",
+				"indexed": true,
+				"internalType": "uint256"
+			},
+			{
+				"name": "escrow",
+				"type": "tuple",
+				"indexed": false,
+				"internalType": "struct Moneybank.Escrow",
+				"components": [
+					{
+						"name": "buyer",
+						"type": "address",
+						"internalType": "address payable"
+					},
+					{
+						"name": "seller",
+						"type": "address",
+						"internalType": "address payable"
+					},
+					{
+						"name": "value",
+						"type": "uint256",
+						"internalType": "uint256"
+					},
+					{
+						"name": "cost",
+						"type": "uint256",
+						"internalType": "uint256"
+					},
+					{
+						"name": "sellerfee",
+						"type": "uint256",
+						"internalType": "uint256"
+					},
+					{
+						"name": "buyerfee",
+						"type": "uint256",
+						"internalType": "uint256"
+					},
+					{
+						"name": "escrowNative",
+						"type": "bool",
+						"internalType": "bool"
+					},
+					{
+						"name": "currency",
+						"type": "address",
+						"internalType": "contract IERC20"
+					},
+					{
+						"name": "status",
+						"type": "uint8",
+						"internalType": "enum Moneybank.EscrowStatus"
+					}
+				]
+			}
+		],
+		"anonymous": false
+	},
+	{
+		"type": "event",
+		"name": "EscrowDisputeResolved",
+		"inputs": [
+			{
+				"name": "orderId",
+				"type": "uint256",
+				"indexed": true,
+				"internalType": "uint256"
+			}
+		],
+		"anonymous": false
+	},
+	{
+		"type": "event",
+		"name": "EtherFeesSuccessfullyWithdrawn",
+		"inputs": [
+			{
+				"name": "isSent",
+				"type": "bool",
+				"indexed": true,
+				"internalType": "bool"
+			}
+		],
+		"anonymous": false
+	},
+	{
+		"type": "event",
+		"name": "OwnershipTransferred",
+		"inputs": [
+			{
+				"name": "previousOwner",
+				"type": "address",
+				"indexed": true,
+				"internalType": "address"
+			},
+			{
+				"name": "newOwner",
+				"type": "address",
+				"indexed": true,
+				"internalType": "address"
+			}
+		],
+		"anonymous": false
+	},
+	{
+		"type": "event",
+		"name": "SellerFeeUpdated",
+		"inputs": [
+			{
+				"name": "oldFeeSeller",
+				"type": "uint256",
+				"indexed": true,
+				"internalType": "uint256"
+			},
+			{
+				"name": "newFeeSeller",
+				"type": "uint256",
+				"indexed": true,
+				"internalType": "uint256"
+			}
+		],
+		"anonymous": false
+	},
+	{
+		"type": "event",
+		"name": "TokenAddedToWhitelist",
+		"inputs": [
+			{
+				"name": "token",
+				"type": "address",
+				"indexed": true,
+				"internalType": "address"
+			}
+		],
+		"anonymous": false
+	},
+	{
+		"type": "event",
+		"name": "TokenFeesSuccessfullyWithdrawn",
+		"inputs": [
+			{
+				"name": "token",
+				"type": "address",
+				"indexed": true,
+				"internalType": "address"
+			}
+		],
+		"anonymous": false
+	},
+	{
+		"type": "event",
+		"name": "TokenRemovedFromWhitelist",
+		"inputs": [
+			{
+				"name": "token",
+				"type": "address",
+				"indexed": true,
+				"internalType": "address"
+			}
+		],
+		"anonymous": false
+	},
+	{
+		"type": "error",
+		"name": "AddressIsNotWhitelisted",
+		"inputs": []
+	},
+	{
+		"type": "error",
+		"name": "BuyerApproveEscrowFirst",
+		"inputs": []
+	},
+	{
+		"type": "error",
+		"name": "BuyerCantBeAddressZero",
+		"inputs": []
+	},
+	{
+		"type": "error",
+		"name": "CantBeAddressZero",
+		"inputs": []
+	},
+	{
+		"type": "error",
+		"name": "EscrowIsNotFunded",
+		"inputs": []
+	},
+	{
+		"type": "error",
+		"name": "FeeCanBeFrom0to1Percent",
+		"inputs": []
+	},
+	{
+		"type": "error",
+		"name": "HaveMoreThan100Tokens",
+		"inputs": []
+	},
+	{
+		"type": "error",
+		"name": "IncorretAmount",
+		"inputs": []
+	},
+	{
+		"type": "error",
+		"name": "InsufficientBalance",
+		"inputs": []
+	},
+	{
+		"type": "error",
+		"name": "NoFeesToWithdraw",
+		"inputs": []
+	},
+	{
+		"type": "error",
+		"name": "SellerApproveEscrowFirst",
+		"inputs": []
+	},
+	{
+		"type": "error",
+		"name": "SellerCantBeAddressZero",
+		"inputs": []
+	},
+	{
+		"type": "error",
+		"name": "SellerCantBeTheSameAsBuyer",
+		"inputs": []
+	},
+	{
+		"type": "error",
+		"name": "TransactionFailed",
+		"inputs": []
+	},
+	{
+		"type": "error",
+		"name": "ValueMustBeGreaterThan0",
+		"inputs": []
+	},
+	{
+		"type": "error",
+		"name": "YouAreNotOwnerOfThisOffer",
+		"inputs": []
 	}
 ]

@@ -27,3 +27,5 @@ foundry/lib
 foundry/out
 foundry/cache
 foundry/.env
+foundry/broadcast/
+foundry/broadcast/*

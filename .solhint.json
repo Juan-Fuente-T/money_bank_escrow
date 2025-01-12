@@ -1,0 +1,14 @@
+{
+  "extends": ["solhint:recommended"],
+  "rules": {
+    "avoid-sha3": "warn",
+    "one-contract-per-file": "error",
+    "func-visibility": "warn",
+    "reason-string": {
+      "max-length": 32,
+      "error-message": 40
+    },
+    "gas-custom-errors": "warn",
+    "no-empty-blocks": "warn"
+  }
+}

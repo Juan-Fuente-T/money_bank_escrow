@@ -127,7 +127,40 @@ antiguo amarillo/verdoso hover: #d1e510;
   border-radius: 10px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
 }
-
+.fund-container{
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+.fund-button{
+  padding: 5px 12px;
+  border-radius: 5px;
+  background-color: #1b3b6f; 
+  color: #ffffff; 
+  font-size: 1.2rem;
+}
+.fund-button:hover{
+  background-color: #2b4c82; 
+  scale: 1.04; 
+}
+.fund-container p{
+  width: 30%;
+  text-align: center;
+  padding: 2px;
+  margin: auto;
+  margin: 2px;
+  border-radius: 5px;
+  background-color: #1b3b6f; 
+  color: #ffffff; 
+  font-size: 1.4rem;
+}
+.fund-container h3{
+ width: fit-content;
+ font-size: 1.4rem;
+ padding: 2px;
+ margin: 2px;
+}
 .offersContainer {
   display: flex;
   flex-direction: column;
