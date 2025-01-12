@@ -10,17 +10,41 @@ antiguo amarillo/verdoso hover: #d1e510;
   /* align-items: center;
   justify-content: center;
   align-items: center; */
-  /* min-height: 50vh;  */
-  min-height: 100vh;
-  height: auto;
+  /* min-height: 100vh;  */
+  height: 100%;
+  /* height: auto; */
+  /* display: flex; */
+  margin: 0;
+  padding: 0;
   display: flex;
-  align-items: center;
-  align-self: center;
-  align-content: center;
+  /* flex-direction: column; */
   justify-content: center;
-  justify-items: center;
-  justify-self: center;
-  vertical-align: middle;
+  align-items: center;
+}
+.ext-container{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 5px; 
+  width: 100%;
+  margin: auto;
+  max-width: 1200px;
+  box-sizing: border-box;
+  min-height: 100vh; 
+}
+main {
+  background-color: #16213e;
+  color: #ffffff;
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 1200px;
+  margin: 10px auto;
+  display: flex;
+  flex-direction: column; 
 }
 
 .modal-custom {
@@ -93,13 +117,18 @@ antiguo amarillo/verdoso hover: #d1e510;
 .main {
   background-color: #16213e;
   color: #ffffff;
-  padding: 40px;
+  padding: 10px;
   border-radius: 10px;
   box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5);
   width: 100%;
   max-width: 1200px;
-  margin: 20px auto;
+  margin: 10px auto;
+  display: flex;
+  flex-direction: column; 
+  justify-content: center;
 }
+  
+
 
 .containerTitle {
   text-align: center;
@@ -171,9 +200,9 @@ antiguo amarillo/verdoso hover: #d1e510;
 .logout-title-logo-container {
   display: flex;
   justify-content: space-between;
-  /* justify-content: space-between; */
   align-items: center;
-  margin-bottom: 10px;
+  /* margin-bottom: 10px; */
+  gap: 20px;
 }
 .logout-title-logo-container p {
   font-size: 1.3em;
@@ -181,8 +210,10 @@ antiguo amarillo/verdoso hover: #d1e510;
 .title-container {
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
   margin-bottom: 10px;
-  margin-left: 50px; /*CUIDADO en responsive*/
+  /* margin-left: 50px; CUIDADO en responsive */
 }
 .title.container .description {
   margin-top: 100px;
@@ -403,4 +434,43 @@ antiguo amarillo/verdoso hover: #d1e510;
   margin-top: 20px;
   text-transform: uppercase;
   transition: background-color 0.3s ease;
+}
+@media (max-width: 1024px) {
+}
+
+@media (max-width: 640px) {
+.title-logo-container{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 10px;
+}
+.title-container {
+  display: flex;
+  flex-direction: column; /* Los textos se apilan uno encima del otro */
+  align-items: center; /* Centra los textos */
+  gap: 5px;
+}
+
+.logo, .ConnectButton {
+  display: block; /* Asegura que tanto el logo como el botón estén en su propio bloque */
+}
+
+.title-logo-container > .ConnectButton {
+  margin-left: 0; /* Evita que el botón se mueva hacia la derecha */
+}
+/* Asegúrate de que el botón "ConnectButton" se alinee a la derecha */
+iekbcc0 ju367va ju367v1s{
+  align-self: flex-end; /* El botón se alinea a la derecha */
+  margin-top: 200px;
+}
+.show-balance{
+  font-size: 0.9rem;
+}
+.app-prices{
+  font-size: 1rem;
+  width: 45%;
+}
 }

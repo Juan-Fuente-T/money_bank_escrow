@@ -68,25 +68,25 @@ export default function Home() {
   const { fundUser } = useFundUser(tokenContract, signer);
 
 
- /** 
- * Sets the component as mounted.
- */
+  /** 
+  * Sets the component as mounted.
+  */
   useEffect(() => {
     setIsMounted(true);
   }, []);
-  
+
   /** 
    * Initializes the contract with the user's wallet if available.
  * 
  * @async
  */
-   useEffect(() => {
+  useEffect(() => {
     const initializeContract = async () => {
       try {
         if (typeof window.ethereum !== 'undefined' && address) {
           const provider = new ethers.BrowserProvider(window.ethereum);
           const signer = await provider.getSigner();
-          if(signer) setSigner(signer);
+          if (signer) setSigner(signer);
           const newContract = new ethers.Contract(CONTRACT_ADDRESS, MoneybankABI, signer);
           setContract(newContract);
           const tokenContract = new ethers.Contract(USDTAddress, USDTABI, signer);
@@ -102,7 +102,7 @@ export default function Home() {
     }
   }, [address]);
 
- 
+
   /** 
    * Effect to update the state when the user's address changes.
    * Sets the address, verifies if the user is logged in, fetches fees,
@@ -118,7 +118,7 @@ export default function Home() {
         setFeeBuyer(fees?.feeBuyer);
         setFeeSeller(fees?.feeSeller);
       }
-       // Sets the Ethereum balance if no errors are found and the data is available
+      // Sets the Ethereum balance if no errors are found and the data is available
       if (!isError && data?.value !== undefined) {
         setEthBalance(ethers.formatEther(data?.value)); // Convierte bigint a string
       }
@@ -127,10 +127,10 @@ export default function Home() {
     }
   }, [_address, data, isError, fetchFees, fees.feeBuyer, fees.feeSeller, ethBalance]);
 
- /** 
- * Retrieves cryptocurrency prices and transforms them into a manageable object.
- * The prices are used for conversions between ETH and USDT.
- */
+  /** 
+  * Retrieves cryptocurrency prices and transforms them into a manageable object.
+  * The prices are used for conversions between ETH and USDT.
+  */
   const { data: _prices } = usePrices();
 
   // Transform price data from usePrices into a more usable structure
@@ -153,9 +153,9 @@ export default function Home() {
   const valorEthEnUsd = ethPrecio * usdtPrecio;
   const valorUsdEnEth = usdtPrecio / ethPrecio;
 
- 
+
   async function handleFundUser(amount: string, userAddress: string) {
-  
+
     // setTimeout(() => {
     //   setIsLoading(true);
     // }, 1000);
@@ -179,7 +179,7 @@ export default function Home() {
    * @throws Will log an error if the contract interaction fails.
    */
   async function handleCreateEscrow(value: string, price: string, isEthOffer: boolean) {
-  
+
     // setTimeout(() => {
     //   setIsLoading(true);
     // }, 1000);
@@ -294,10 +294,10 @@ export default function Home() {
     fetchData();
   }, [fetchOffers, fetchFees]);
 
- /** 
- * Handles changes in the form inputs.
- * If a new cryptocurrency is selected, resets associated data.
- */
+  /** 
+  * Handles changes in the form inputs.
+  * If a new cryptocurrency is selected, resets associated data.
+  */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, type, value } = e.target;
     if (type === "radio" && name === "crypto") {
@@ -318,9 +318,9 @@ export default function Home() {
       }));
     }
   };
- /** 
- * Handles the submission of the offer form. Opens the modal with the current form data.
- */
+  /** 
+  * Handles the submission of the offer form. Opens the modal with the current form data.
+  */
   const handleSubmitModal = (e: any) => {
     e.preventDefault();
     openFormularioOferta(datosModal);// Abre el modal con los datos actuales del formularioOferta
@@ -340,18 +340,18 @@ export default function Home() {
     setIsFormVisible(false)
   };
 
- /** 
- * Shows the offer form.
- */
+  /** 
+  * Shows the offer form.
+  */
   const openForm = () => {
     setIsFormVisible(true);
   };
- 
- /** 
- * Confirms the action in the confirmation modal based on the selected cryptocurrency.
- * 
- * @async
- */
+
+  /** 
+  * Confirms the action in the confirmation modal based on the selected cryptocurrency.
+  * 
+  * @async
+  */
   const handleConfirmModal = async () => {
     setIsLoading(true);
     try {
@@ -369,20 +369,20 @@ export default function Home() {
     }
     setIsModalOpen(false);
   };
-  
- /** 
- * Opens the form modal with the provided data.
- * 
- * @param {any} data - The form data.
- */
+
+  /** 
+  * Opens the form modal with the provided data.
+  * 
+  * @param {any} data - The form data.
+  */
   const openFormularioOferta = (data: any) => {
     setDatosModal(data);
     setIsModalOpen(true);
   };
 
- /** 
- * Closes the summary modal.
- */
+  /** 
+  * Closes the summary modal.
+  */
   const closeModal = () => {
     setIsModalOpen(false);
   };
@@ -455,7 +455,7 @@ export default function Home() {
             </div>
             <div className="fund-container">
               <h3>Obten USDT de prueba si no dispones de él: </h3>
-              {balanceOf < 10 ? <button className="fund-button" onClick={() => handleFundUser('100', address)}>Recibir 100 USDT</button>: <p>Tienes suficientes USDT para probar</p>}
+              {balanceOf < 10 ? <button className="fund-button" onClick={() => handleFundUser('100', address)}>Recibir 100 USDT</button> : <p>Tienes suficientes USDT para probar</p>}
             </div>
             <div className="styles.containerData">
               <div>

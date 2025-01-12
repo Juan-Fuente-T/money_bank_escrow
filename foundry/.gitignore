@@ -13,6 +13,10 @@ docs/
 # Dotenv file
 .env
 
-#Miscelanea
-node_modules/
-/lib
+#Node_modules
+/node_modules
+
+.vscode/
+.idea/
+lib/
+lib/forge-std/

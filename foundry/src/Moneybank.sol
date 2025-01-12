@@ -29,6 +29,7 @@ contract Moneybank is ReentrancyGuard, Ownable {
     uint256 public orderId;
     // Mapping of order ID to Escrow struct
     mapping(uint256 => Escrow) public escrows;
+    mapping(uint256 => Escrow) public escrows;
     // Mapping of whitelisted stablecoin addresses
     mapping(address => bool) public whitelistedStablesAddresses;
     // Mapping of token => summation of fees that can be withdrawn
@@ -43,6 +44,14 @@ contract Moneybank is ReentrancyGuard, Ownable {
     event EtherFeesSuccessfullyWithdrawn(bool indexed isSent);
     event TokenAddedToWhitelist(address indexed token);
     event TokenRemovedFromWhitelist(address indexed token);
+    event BuyerFeeUpdated(
+        uint256 indexed oldFeeBuyer,
+        uint256 indexed newFeeBuyer
+    );
+    event SellerFeeUpdated(
+        uint256 indexed oldFeeSeller,
+        uint256 indexed newFeeSeller
+    );
     event BuyerFeeUpdated(
         uint256 indexed oldFeeBuyer,
         uint256 indexed newFeeBuyer
@@ -172,6 +181,7 @@ contract Moneybank is ReentrancyGuard, Ownable {
         escrows[orderId] = Escrow(
             payable(address(0)), // Futuro comprador, buyer
             payable(msg.sender), //creador del escrow, seller
+            payable(msg.sender), //creador del escrow, seller
             _value,
             _cost,
             _amountFeeSeller,
@@ -190,6 +200,27 @@ contract Moneybank is ReentrancyGuard, Ownable {
         emit EscrowDeposit(orderId, escrows[orderId]);
     }
 
+    /**
+     * @dev Creates a new escrow transaction with native coin.
+     * This function allows a seller to deposit funds into an escrow contract,
+     * setting up a transaction with a specified value and cost. It also calculates
+     * and sets the fees for both the seller and the buyer based on predefined rates.
+     *
+     * @param _value The total amount of the transaction, including the seller's fee.
+     * @param _cost The amount of native coins (e.g., ETH) required to initiate the transaction.
+     * @param _currency The ERC20 token currency involved in the transaction.
+     * return orderId The unique identifier assigned to this new escrow transaction.
+     *
+     * Requirements:
+     * - `seller` cannot be the same as the buyer.
+     * - `seller` cannot be the zero address.
+     * - `_value` must be greater than 0.
+     * - The transaction value must be sufficient to cover the transaction amount plus buyer fee.
+     * - The currency passed must be whitelisted in the contract.
+     *
+     * Events emitted:
+     * - `EscrowDeposit`: Indicates that a new escrow transaction has been successfully created.
+     */
     /**
      * @dev Creates a new escrow transaction with native coin.
      * This function allows a seller to deposit funds into an escrow contract,
@@ -233,11 +264,13 @@ contract Moneybank is ReentrancyGuard, Ownable {
         escrows[orderId] = Escrow(
             payable(address(0)), //Futuro comprador, buyer
             payable(msg.sender), //Creador del escrow, seller
+            payable(msg.sender), //Creador del escrow, seller
             _value,
             _cost,
             _amountFeeSeller,
             feeBuyer,
             true,
+            IERC20(_currency),
             IERC20(_currency),
             EscrowStatus.Funded
         );
@@ -301,7 +334,12 @@ contract Moneybank is ReentrancyGuard, Ownable {
         escrow.buyer = payable(msg.sender);
 
         //////////////////////////////////INTERACTIONS///////////////////////////////
+        //////////////////////////////////INTERACTIONS///////////////////////////////
         if (escrow.escrowNative) {
+            if (
+                escrow.cost >
+                escrow.currency.allowance(msg.sender, address(this))
+            ) {
             if (
                 escrow.cost >
                 escrow.currency.allowance(msg.sender, address(this))
@@ -344,6 +382,10 @@ contract Moneybank is ReentrancyGuard, Ownable {
                 msg.sender,
                 escrow.value - amountFeeBuyer
             );
+            escrow.currency.safeTransfer(
+                msg.sender,
+                escrow.value - amountFeeBuyer
+            );
         }
         escrow.status = EscrowStatus.Completed;
         escrow.buyer = payable(msg.sender);
@@ -351,7 +393,30 @@ contract Moneybank is ReentrancyGuard, Ownable {
         delete escrows[_orderId];
     }
 
+
     /**
+     * @dev Cancels an escrow transaction.
+     * This function allows the seller to cancel an escrow transaction if it is in the Funded status.
+     * The function handles both native coin (ETH) and ERC20 token transfers based on the escrow's configuration.
+     *
+     * @param _orderId The unique identifier of the escrow transaction to be cancelled.
+     *
+     * Requirements:
+     * - The escrow must be in the Funded status.
+     * - The caller must be the seller of the escrow.
+     *
+     * Effects:
+     * - Updates the status of the escrow to Cancelled.
+     *
+     * Interactions:
+     * - If the escrow involves ERC20 tokens, it transfers the tokens from the escrow back to the seller using `safeTransfer`.
+     * - If the escrow involves native coins (ETH), it transfers the ETH back to the seller using a low-level call.
+     *
+     * Emits:
+     * - `EscrowCancelled` event with the `_orderId` and the escrow details.
+     *
+     * Note: The escrow must be funded and not completed to call this function. The seller can only cancel if they are the owner of the escrow.
+     */
      * @dev Cancels an escrow transaction.
      * This function allows the seller to cancel an escrow transaction if it is in the Funded status.
      * The function handles both native coin (ETH) and ERC20 token transfers based on the escrow's configuration.
@@ -389,8 +454,10 @@ contract Moneybank is ReentrancyGuard, Ownable {
             revert EscrowIsNotFunded();
         }
         if (escrow.seller != msg.sender) {
+        if (escrow.seller != msg.sender) {
             revert YouAreNotOwnerOfThisOffer();
         }
+        ////////////////////////////////EFFECTS////////////////////////////////
         ////////////////////////////////EFFECTS////////////////////////////////
         escrow.status = EscrowStatus.Cancelled;
 
@@ -408,6 +475,7 @@ contract Moneybank is ReentrancyGuard, Ownable {
         emit EscrowCancelled(_orderId, escrow);
     }
 
+
     /**
      * @dev Refunds the buyer in case of a cancelled contract.
      * @param _orderId The ID of the escrow.
@@ -424,6 +492,7 @@ contract Moneybank is ReentrancyGuard, Ownable {
         // require(escrows[_orderId].status == EscrowStatus.Refund,"Refund not approved");
 
         if (escrows[_orderId].status != EscrowStatus.Funded) {
+        if (escrows[_orderId].status != EscrowStatus.Funded) {
             revert EscrowIsNotFunded();
         }
         uint256 _value = escrows[_orderId].value;
@@ -437,6 +506,11 @@ contract Moneybank is ReentrancyGuard, Ownable {
     }
 
     /**
+     * @dev Refunds the buyer in native coin in case of a cancelled contract.
+     * @param _orderId The ID of the escrow.
+     * Requirements:
+     * - The caller must be the contract owner.
+     */
      * @dev Refunds the buyer in native coin in case of a cancelled contract.
      * @param _orderId The ID of the escrow.
      * Requirements:
@@ -496,6 +570,7 @@ contract Moneybank is ReentrancyGuard, Ownable {
         feeBuyer = _newFeeBuyer;
         emit BuyerFeeUpdated(oldFeeBuyer, _newFeeBuyer);
     }
+    }
 
     /**
      * @dev Withdraws fees accumulated in a specific currency by the contract owner.
@@ -521,6 +596,10 @@ contract Moneybank is ReentrancyGuard, Ownable {
      * Requirements:
      * - The caller must be the contract owner.
      */
+     * @dev Withdraws fees accumulated in native coin by the contract owner.
+     * Requirements:
+     * - The caller must be the contract owner.
+     */
     function withdrawEtherFees() external onlyOwner {
         uint256 _amount = feesAvailableNativeCoin;
         if (_amount <= 0) {
@@ -541,6 +620,8 @@ contract Moneybank is ReentrancyGuard, Ownable {
     /**
      * @dev Returns the version of the contract.
      */
+     * @dev Returns the version of the contract.
+     */
     function version() external pure virtual returns (string memory) {
         return "0.0.3";
     }
@@ -549,7 +630,13 @@ contract Moneybank is ReentrancyGuard, Ownable {
 
     /// ================== Begin Public functions ==================
 
+
     /**
+     * @dev Retrieves the escrow details based on the provided escrow ID.
+     * @param escrowId The ID of the escrow.
+     * @return Escrow The details of the escrow.
+     */
+    function getEscrow(uint256 escrowId) public view returns (Escrow memory) {
      * @dev Retrieves the escrow details based on the provided escrow ID.
      * @param escrowId The ID of the escrow.
      * @return Escrow The details of the escrow.
@@ -558,7 +645,12 @@ contract Moneybank is ReentrancyGuard, Ownable {
         return escrows[escrowId];
     }
 
+
     /**
+     * @dev Retrieves the status of an escrow based on the provided order ID.
+     * @param _orderId The ID of the order.
+     * @return EscrowStatus The status of the escrow.
+     */
      * @dev Retrieves the status of an escrow based on the provided order ID.
      * @param _orderId The ID of the order.
      * @return EscrowStatus The status of the escrow.
@@ -569,6 +661,10 @@ contract Moneybank is ReentrancyGuard, Ownable {
     }
 
     /**
+     * @dev Retrieves the value of an escrow based on the provided order ID.
+     * @param _orderId The ID of the order.
+     * @return uint256 The value of the escrow.
+     */
      * @dev Retrieves the value of an escrow based on the provided order ID.
      * @param _orderId The ID of the order.
      * @return uint256 The value of the escrow.
@@ -588,6 +684,10 @@ contract Moneybank is ReentrancyGuard, Ownable {
     }
 
     /**
+     * @dev Retrieves the type of an escrow based on the provided order ID. Can be native, ETH or with token
+     * @param _orderId The ID of the order.
+     * @return bool The type of the escrow. True for native.
+     */
      * @dev Retrieves the type of an escrow based on the provided order ID. Can be native, ETH or with token
      * @param _orderId The ID of the order.
      * @return bool The type of the escrow. True for native.
@@ -757,6 +857,7 @@ contract Moneybank is ReentrancyGuard, Ownable {
         if (!whitelistedStablesAddresses[address(_token)]) {
             revert AddressIsNotWhitelisted();
         }
+        if (msg.sender == address(0)) {
         if (msg.sender == address(0)) {
             revert SellerCantBeAddressZero();
         }

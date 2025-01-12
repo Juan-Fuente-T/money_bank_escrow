@@ -58,9 +58,9 @@ export function useEscrow(contract: Contract | null, tokenContract: Contract | n
         // Calcular el equivalente en ETH en wei
         const ethAmountBN = pricePerEthBN * (BigInt(valueParsed));
 
-        console.log("usdtAmountBN:", usdtAmountBN.toString()); // Ejemplo: 100000000
-        console.log("pricePerEthBN:", pricePerEthBN.toString()); // Ejemplo: 294761418356924
-        console.log("ethAmountBN:", ethAmountBN); // Resultado esperado en ether
+        // console.log("usdtAmountBN:", usdtAmountBN.toString()); // Ejemplo: 100000000
+        // console.log("pricePerEthBN:", pricePerEthBN.toString()); // Ejemplo: 294761418356924
+        // console.log("ethAmountBN:", ethAmountBN); // Resultado esperado en ether
 
         //Realizar el approve previo para permitir el envio de tokens
         // const addApproveTokenTx = await tokenContract.approve(CONTRACT_ADDRESS, valueInUSDTWei + fee, {
