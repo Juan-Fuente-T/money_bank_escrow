@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
-pragma experimental SMTChecker;
 
 // import "../lib/forge-std/src/Test.sol";
-import "forge-std/Test.sol";
+// import "forge-std/Test.sol";
 import {IERC20} from "./IERC20.sol";
 import { Address } from "./Address.sol";
 import { SafeERC20 } from "./SafeERC20.sol";
@@ -29,11 +28,11 @@ contract Moneybank is ReentrancyGuard, Ownable {
     uint256 public orderId;
     // Mapping of order ID to Escrow struct
     mapping(uint256 => Escrow) public escrows;
-    mapping(uint256 => Escrow) public escrows;
     // Mapping of whitelisted stablecoin addresses
     mapping(address => bool) public whitelistedStablesAddresses;
     // Mapping of token => summation of fees that can be withdrawn
-    mapping(IERC20 => uint) public feesAvailable;
+    // mapping(IERC20 => uint) public feesAvailable;
+    mapping(address => uint) public feesAvailable;
     IERC20 public token;
 
     event EscrowDeposit(uint256 indexed orderId, Escrow escrow);
@@ -52,15 +51,7 @@ contract Moneybank is ReentrancyGuard, Ownable {
         uint256 indexed oldFeeSeller,
         uint256 indexed newFeeSeller
     );
-    event BuyerFeeUpdated(
-        uint256 indexed oldFeeBuyer,
-        uint256 indexed newFeeBuyer
-    );
-    event SellerFeeUpdated(
-        uint256 indexed oldFeeSeller,
-        uint256 indexed newFeeSeller
-    );
-
+    
     error CantBeAddressZero();
     error SellerCantBeAddressZero();
     error BuyerCantBeAddressZero();
@@ -110,8 +101,8 @@ contract Moneybank is ReentrancyGuard, Ownable {
 
     // Struct representing an escrow transaction
     struct Escrow {
-        address payable buyer; //Comprador
-        address payable seller; //Vendedor
+        address buyer; //Comprador
+        address seller; //Vendedor
         uint256 value; //Valor en venta en moneda 1
         uint256 cost; //Monto compra en moneda 2
         uint256 sellerfee; //Comision vendedor
@@ -127,7 +118,6 @@ contract Moneybank is ReentrancyGuard, Ownable {
         whitelistedStablesAddresses[currency] = true;
         token = IERC20(currency);
     }
-
     // ================== Begin External functions ==================
     /**
      * @dev Creates a new escrow transaction with an ERC20 token.
@@ -180,7 +170,6 @@ contract Moneybank is ReentrancyGuard, Ownable {
         orderId++;
         escrows[orderId] = Escrow(
             payable(address(0)), // Futuro comprador, buyer
-            payable(msg.sender), //creador del escrow, seller
             payable(msg.sender), //creador del escrow, seller
             _value,
             _cost,
@@ -264,13 +253,11 @@ contract Moneybank is ReentrancyGuard, Ownable {
         escrows[orderId] = Escrow(
             payable(address(0)), //Futuro comprador, buyer
             payable(msg.sender), //Creador del escrow, seller
-            payable(msg.sender), //Creador del escrow, seller
             _value,
             _cost,
             _amountFeeSeller,
             feeBuyer,
             true,
-            IERC20(_currency),
             IERC20(_currency),
             EscrowStatus.Funded
         );
@@ -340,10 +327,6 @@ contract Moneybank is ReentrancyGuard, Ownable {
                 escrow.cost >
                 escrow.currency.allowance(msg.sender, address(this))
             ) {
-            if (
-                escrow.cost >
-                escrow.currency.allowance(msg.sender, address(this))
-            ) {
                 revert BuyerApproveEscrowFirst();
             }
             feesAvailableNativeCoin += amountFeeBuyer + escrow.sellerfee;
@@ -368,7 +351,7 @@ contract Moneybank is ReentrancyGuard, Ownable {
             //     require(sent, "Refund failed");
             // }
         } else {
-            feesAvailable[escrow.currency] += amountFeeBuyer + escrow.sellerfee;
+            feesAvailable[address(escrow.currency)] += amountFeeBuyer + escrow.sellerfee;
             if(msg.value < escrow.cost){
                 revert IncorretAmount();
             }
@@ -391,9 +374,7 @@ contract Moneybank is ReentrancyGuard, Ownable {
         escrow.buyer = payable(msg.sender);
         emit EscrowComplete(_orderId, escrow);
         delete escrows[_orderId];
-    }
-
-
+}
     /**
      * @dev Cancels an escrow transaction.
      * This function allows the seller to cancel an escrow transaction if it is in the Funded status.
@@ -417,29 +398,6 @@ contract Moneybank is ReentrancyGuard, Ownable {
      *
      * Note: The escrow must be funded and not completed to call this function. The seller can only cancel if they are the owner of the escrow.
      */
-     * @dev Cancels an escrow transaction.
-     * This function allows the seller to cancel an escrow transaction if it is in the Funded status.
-     * The function handles both native coin (ETH) and ERC20 token transfers based on the escrow's configuration.
-     *
-     * @param _orderId The unique identifier of the escrow transaction to be cancelled.
-     *
-     * Requirements:
-     * - The escrow must be in the Funded status.
-     * - The caller must be the seller of the escrow.
-     *
-     * Effects:
-     * - Updates the status of the escrow to Cancelled.
-     *
-     * Interactions:
-     * - If the escrow involves ERC20 tokens, it transfers the tokens from the escrow back to the seller using `safeTransfer`.
-     * - If the escrow involves native coins (ETH), it transfers the ETH back to the seller using a low-level call.
-     *
-     * Emits:
-     * - `EscrowCancelled` event with the `_orderId` and the escrow details.
-     *
-     * Note: The escrow must be funded and not completed to call this function. The seller can only cancel if they are the owner of the escrow.
-     */
-
     function cancelEscrow(
         uint256 _orderId,
         uint256 nonce,
@@ -473,9 +431,8 @@ contract Moneybank is ReentrancyGuard, Ownable {
             }
         }
         emit EscrowCancelled(_orderId, escrow);
+     }
     }
-
-
     /**
      * @dev Refunds the buyer in case of a cancelled contract.
      * @param _orderId The ID of the escrow.
@@ -504,13 +461,8 @@ contract Moneybank is ReentrancyGuard, Ownable {
         _currency.safeTransfer(_buyer, _value);
         emit EscrowDisputeResolved(_orderId);
     }
-
+    }
     /**
-     * @dev Refunds the buyer in native coin in case of a cancelled contract.
-     * @param _orderId The ID of the escrow.
-     * Requirements:
-     * - The caller must be the contract owner.
-     */
      * @dev Refunds the buyer in native coin in case of a cancelled contract.
      * @param _orderId The ID of the escrow.
      * Requirements:
@@ -570,7 +522,7 @@ contract Moneybank is ReentrancyGuard, Ownable {
         feeBuyer = _newFeeBuyer;
         emit BuyerFeeUpdated(oldFeeBuyer, _newFeeBuyer);
     }
-    }
+    
 
     /**
      * @dev Withdraws fees accumulated in a specific currency by the contract owner.
@@ -582,20 +534,16 @@ contract Moneybank is ReentrancyGuard, Ownable {
        bytes32 messageHash = keccak256(abi.encodePacked(_currency, nonce));
         checkHashMessage(messageHash, signature);
  
-        uint256 _amount = feesAvailable[_currency];
-        if (feesAvailable[_currency] <= 0) {
+        uint256 _amount = feesAvailable[address(_currency)];
+        if (feesAvailable[address(_currency)] <= 0) {
             revert NoFeesToWithdraw();
         }
-        feesAvailable[_currency] -= _amount;
+        feesAvailable[address(_currency)] -= _amount;
         _currency.safeTransfer(owner(), _amount);
         emit TokenFeesSuccessfullyWithdrawn(address(_currency));
     }
 
     /**
-     * @dev Withdraws fees accumulated in native coin by the contract owner.
-     * Requirements:
-     * - The caller must be the contract owner.
-     */
      * @dev Withdraws fees accumulated in native coin by the contract owner.
      * Requirements:
      * - The caller must be the contract owner.
@@ -620,8 +568,6 @@ contract Moneybank is ReentrancyGuard, Ownable {
     /**
      * @dev Returns the version of the contract.
      */
-     * @dev Returns the version of the contract.
-     */
     function version() external pure virtual returns (string memory) {
         return "0.0.3";
     }
@@ -637,20 +583,11 @@ contract Moneybank is ReentrancyGuard, Ownable {
      * @return Escrow The details of the escrow.
      */
     function getEscrow(uint256 escrowId) public view returns (Escrow memory) {
-     * @dev Retrieves the escrow details based on the provided escrow ID.
-     * @param escrowId The ID of the escrow.
-     * @return Escrow The details of the escrow.
-     */
-    function getEscrow(uint256 escrowId) public view returns (Escrow memory) {
         return escrows[escrowId];
     }
 
 
     /**
-     * @dev Retrieves the status of an escrow based on the provided order ID.
-     * @param _orderId The ID of the order.
-     * @return EscrowStatus The status of the escrow.
-     */
      * @dev Retrieves the status of an escrow based on the provided order ID.
      * @param _orderId The ID of the order.
      * @return EscrowStatus The status of the escrow.
@@ -661,10 +598,6 @@ contract Moneybank is ReentrancyGuard, Ownable {
     }
 
     /**
-     * @dev Retrieves the value of an escrow based on the provided order ID.
-     * @param _orderId The ID of the order.
-     * @return uint256 The value of the escrow.
-     */
      * @dev Retrieves the value of an escrow based on the provided order ID.
      * @param _orderId The ID of the order.
      * @return uint256 The value of the escrow.
@@ -684,10 +617,6 @@ contract Moneybank is ReentrancyGuard, Ownable {
     }
 
     /**
-     * @dev Retrieves the type of an escrow based on the provided order ID. Can be native, ETH or with token
-     * @param _orderId The ID of the order.
-     * @return bool The type of the escrow. True for native.
-     */
      * @dev Retrieves the type of an escrow based on the provided order ID. Can be native, ETH or with token
      * @param _orderId The ID of the order.
      * @return bool The type of the escrow. True for native.
@@ -857,7 +786,6 @@ contract Moneybank is ReentrancyGuard, Ownable {
         if (!whitelistedStablesAddresses[address(_token)]) {
             revert AddressIsNotWhitelisted();
         }
-        if (msg.sender == address(0)) {
         if (msg.sender == address(0)) {
             revert SellerCantBeAddressZero();
         }

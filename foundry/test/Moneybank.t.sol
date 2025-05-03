@@ -23,8 +23,8 @@ contract MoneybankTest is Test {
 
 
     struct Escrow {
-        address payable buyer; //Comprador
-        address payable seller; //Vendedor
+        address buyer; //Comprador
+        address seller; //Vendedor
         uint256 value; //Valor en venta en moneda 1
         uint256 cost; //Monto compra en moneda 2
         uint256 sellerfee; //Comision vendedor
@@ -44,7 +44,25 @@ contract MoneybankTest is Test {
     event TokenRemovedFromWhitelist(address indexed token);
     event BuyerFeeUpdated(uint256 indexed oldFeeBuyer,uint256 indexed newFeeBuyer);
     event SellerFeeUpdated(uint256 indexed oldFeeSeller, uint256 indexed newFeeSeller);
-
+    
+    /**
+    * @notice Firma un hash de 32 bytes usando una clave privada.
+    * @param signerPrivateKey La clave privada (uint256) para firmar.
+    * @param messageHash El hash de 32 bytes a firmar.
+    * @return signature La firma codificada como bytes (r + s + v).
+    // */
+    // function _getSignature(
+    //     uint256 signerPrivateKey,
+    //     bytes32 messageHash
+    //     // Podrías añadir un bool para incluir prefijo Eth si tu check lo necesita siempre:
+    //     // bool prefixMessage = true
+    // ) internal returns (bytes memory signature) {
+    //     // bytes32 hashToSign = prefixMessage
+    //     //     ? keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash))
+    //     //     : messageHash;
+    //     (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, messageHash);
+    //     signature = abi.encodePacked(r, s, v);
+    // }
 
     // function setupSpecificTest() internal {
     // // Configurar estado específico necesario para esta prueba
@@ -63,6 +81,9 @@ contract MoneybankTest is Test {
             token = new USDTToken();
             vm.stopPrank();
             moneybank = new Moneybank(address(token));
+            //VA A SER NECESARIO FIRMAR LAS TRANSACCIONES UNA VEZ SE IMPLEMENTÓ ESO EN EL CONTRATO
+            nonce = 1; 
+            // moneybank.addTokenToWhitelist(address(token), 1, signature);
             moneybank.addTokenToWhitelist(address(token));
             startHoax(alice, 100000000);
             console.log(address(token));
@@ -89,7 +110,7 @@ contract MoneybankTest is Test {
         moneybank.addTokenToWhitelist(address(0));
     }
 
-////////////////////////////////////TEST DEL STABLE COIN//////////////////////////////////
+////////////////////////////////////TEST DELETE STABLE COIN//////////////////////////////////
     function testDelStablesAddresses() public{
         vm.stopPrank();
         moneybank.addTokenToWhitelist(address(token));
