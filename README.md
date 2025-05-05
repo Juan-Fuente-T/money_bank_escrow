@@ -71,7 +71,7 @@ Puedes probar la aplicación aquí (necesitarás Metamask configurado para Sepol
 4. Explora las ofertas disponibles y acepta la que te interese si tienes fondos.
 5. Cancela tus propias ofertas activas si lo deseas.
 
-![src/images/MoneyBankEscrowImage2.png](src/images/MoneyBankEscrowImageForm.jpg)
+![src/images/MoneyBankEscrowImage2.png](src/images/MoneyBankEscrowImage2.png)
 
 ![alt text](src/images/MoneyBankEscrowImageForm.jpg)
 
