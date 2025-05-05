@@ -1,41 +1,84 @@
-# Web3Auth (`@web3auth/modal`) x EVM x React
+# Money Bank Escrow DApp 🏦💸
 
-[![Web3Auth](https://img.shields.io/badge/Web3Auth-SDK-blue)](https://web3auth.io/docs/sdk/pnp/web/modal)
-[![Web3Auth](https://img.shields.io/badge/Web3Auth-Community-cyan)](https://community.web3auth.io)
+![alt text](src/images/MoneyBankEscrowImage1.png)
 
-[Join our Community Portal](https://community.web3auth.io/) to get support and stay up to date with the latest news and updates.
+## Descripción Breve
 
-This example demonstrates how to use Web3Auth with EVM in React.
+Una Aplicación Descentralizada (DApp) P2P construida sobre la red de pruebas **Sepolia (Ethereum)** que permite a los usuarios intercambiar tokens ERC20 (específicamente USDT de prueba) de forma segura entre pares utilizando un sistema de **escrow** basado en smart contracts. El objetivo es eliminar intermediarios y riesgos de contraparte.
 
-## How to Use
+## Características Principales ✨
 
-One-Click Deploy to Vercel
+* **Creación de Ofertas Seguras:** Publicación de ofertas de intercambio bloqueando los fondos del ofertante en el contrato escrow hasta su aceptación o cancelación.
+* **Intercambio Atómico y Sin Concurrencia:** Lógica que asegura el intercambio simultáneo de fondos en la misma transacción al aceptar una oferta, evitando inconsistencias.
+* **Faucet de Tokens de Prueba:** Funcionalidad on-chain para obtener USDT de prueba directamente desde el contrato y facilitar el testeo en Sepolia. Solo estará disponible si el balance de la cuenta conectada es cercano a cero.
+* **Seguridad Reforzada:**
+    * **Firma de Transacciones:** Verificación mediante `signMessage` y nonces únicos para autorizar operaciones críticas.
+    * **Patrones Seguros:** Aplicación del patrón Checks-Effects-Interactions en Solidity para mitigar riesgos comunes.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FWeb3Auth%2Fweb3auth-pnp-examples%2Ftree%2Fmain%2Fweb-modal-sdk%2Fquick-starts%2Freact-modal-quick-start&project-name=w3a-evm-modal&repository-name=w3a-evm-modal)
+## Tecnologías Utilizadas 🛠️
 
-### Download Manually
+* **Smart Contracts:** Solidity
+* **Testing & Desarrollo Contratos:** Foundry 
+* **Frontend:** React, TypeScript, HTML, CSS 
+* **Librerías Web3 Frontend:** Wagmi, Viem, RainbowKit, Ethers.js 
+* **Blockchain:** Ethereum (Sepolia Testnet)
+* **Wallet:** Metamask (o compatible con RainbowKit)
 
-```bash
-npx degit Web3Auth/web3auth-pnp-examples/web-modal-sdk/quick-starts/react-modal-quick-start w3a-example
-```
+## Demo en Vivo 🔗
 
-Install & Run:
+Puedes probar la aplicación aquí (necesitarás Metamask configurado para Sepolia y algo de ETH Sepolia para el gas):
+**[https://money-bank-escrow.vercel.app/](https://money-bank-escrow.vercel.app/)**
 
-```bash
-cd w3a-example
-npm install
-npm run start
-# or
-cd w3a-example
-yarn
-yarn start
-```
+## Cómo Empezar (Desarrollo Local) 🚀
 
-## Important Links
+1.  **Prerrequisitos:**
+    * Node.js
+    * npm o yarn
+    * Git
+    * Foundry 
+    * Wallet de navegador (Metamask).
 
-- [Website](https://web3auth.io)
-- [Docs](https://web3auth.io/docs)
-- [Guides](https://web3auth.io/docs/guides)
-- [SDK / API References](https://web3auth.io/docs/sdk)
-- [Pricing](https://web3auth.io/pricing.html)
-- [Community Portal](https://community.web3auth.io)
+2.  **Clonar Repositorio:**
+    ```bash
+    git clone https://github.com/Juan-Fuente-T/money_bank_escrow.git
+    cd money_bank_escrow
+    ```
+3.  **Instalar Dependencias:**
+    ```bash
+    # Comando para instalar dependencias del frontend (ej. cd frontend && npm install)
+    npm install # o yarn install
+    # Comando para instalar dependencias de contratos si aplica (ej. cd ../contracts && forge install)
+    cd ./foundry
+    forge install 
+    ```
+4.  **Configurar Variables de Entorno:**
+    * Crea un archivo `.env` en la raíz (o donde corresponda `[TU AYUDA AQUÍ: Indicar ubicación .env.local]`).
+    * Añade la variable necesaria (`REACT_APP_PROJECT_ID`, para conexión de wallet). 
+    * *Asegúrate de añadir `.env.local` al archivo `.gitignore`.*
+5.  **Iniciar Frontend:**
+    ```bash
+    # Comando para iniciar el frontend (ej. cd ../frontend && npm run dev)
+    npm run dev # o yarn dev
+    ```
+6.  Abrir `http://localhost:3000` (o el puerto indicado) en el navegador.
+
+## Uso Básico 🖱️
+
+*(La descripción que teníamos antes parece correcta)*
+1. Conecta tu wallet (Metamask) en la red Sepolia.
+2. Usa el botón "Obtener Tokens de Prueba" si necesitas USDT. 
+3. Crea una oferta especificando tokens y cantidades. Aprueba la transacción.
+4. Explora las ofertas disponibles y acepta la que te interese si tienes fondos.
+5. Cancela tus propias ofertas activas si lo deseas.
+
+![src/images/MoneyBankEscrowImage2.png](src/images/MoneyBankEscrowImageForm.jpg)
+
+![alt text](src/images/MoneyBankEscrowImageForm.jpg)
+
+## Licencia 📄
+
+Distribuido bajo la Licencia MIT. Ver `LICENSE` para más información. 
+
+## Contacto 📬
+
+Juan Fuente - https://www.linkedin.com/in/juan-fuente-dev/  -  https://juanfuente.ovh  -  jfuentet@gmail.com 
