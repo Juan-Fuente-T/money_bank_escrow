@@ -74,6 +74,23 @@ Puedes probar la aplicación aquí (necesitarás Metamask configurado para Sepol
 
 ![alt text](src/images/MoneyBankEscrowImageForm.jpg)
 
+## Restos y aprendizajes 🧠
+#### Escrows
+- La dapp implementa un sistema de escrows, mediante el cual al crearse la oferta se está aprobando y enviando al contrato la cantidad ofertada, que se mantiene bloqueada hasta que es cancelada o aceptada por otro usuario.
+#### Logica
+- He creado una lógica para la evitar la concurrencia en las transacciones, ya que al aceptarse la oferta se envía la cantidad del intercambio al ofertante y se recibe el importe de la oferta en la misma transacción, evitando que se  pueda interactuar simultáneamente con la misma oferta, evitando inconsistencias o comportamientos no deseados.
+#### Uso de Api externa
+- Integra la API de CoinGecko para obtener valores actualizados de intercambio, para lograr que la información mostrada al usuario sea precisa y actualizada, mejorando la experiencia del usuario.
+#### Rainbowkit
+- Me he decantado por el uso de Wagmi y RainbowKit  para manejar la conexión con la wallet del  usuario,  para proporcionar una experiencia más fluida en la conexión/desconexión y con mayor flexibilidad al permitir conectarse con una amplia variedad de wallets.
+#### Transferencia de tokens
+- Para facilitar las pruebas y la experiencia de usuario, la aplicación incluye una funcionalidad que permite a los usuarios obtener tokens USDT de prueba directamente desde el contrato. Si no se posee balance de dicho token se muestra un botón en la interfaz que, al ser presionado, interactúa con el contrato para enviar 100 tokens a la wallet conectada del usuario. Esto permite probar las funcionalidades de la dApp si se dispone de ether nativo en la red Sepolia.
+#### Firma de transacciones
+- Se implementa un sistema de firma de transacciones para mejorar la seguridad y autenticidad. Utiliza la función signMessage para firmar un mensaje compuesto por los detalles críticos de la transacción y un nonce único. La firma resultante se verifica en el contrato inteligente antes de ejecutar la transacción, lo que garantiza que solo el propietario de la wallet pueda autorizar las operaciones y previene las manipulaciones.
+#### Seguridad
+- He prestado especial atención al diseño del contrato inteligente, usando siempre el patrón Checks-Effects-Interactions para evitar vulnerabilidades y problemas de concurrencia en las transacciones.
+- Implementé lógica clara y robusta para gestionar estados en el escrow y asegurar transacciones seguras.
+
 ## Licencia 📄
 
 Distribuido bajo la Licencia MIT. Ver `LICENSE` para más información. 
