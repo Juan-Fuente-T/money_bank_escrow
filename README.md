@@ -64,7 +64,6 @@ Puedes probar la aplicación aquí (necesitarás Metamask configurado para Sepol
 
 ## Uso Básico 🖱️
 
-*(La descripción que teníamos antes parece correcta)*
 1. Conecta tu wallet (Metamask) en la red Sepolia.
 2. Usa el botón "Obtener Tokens de Prueba" si necesitas USDT. 
 3. Crea una oferta especificando tokens y cantidades. Aprueba la transacción.
